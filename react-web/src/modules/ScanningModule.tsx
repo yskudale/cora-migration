@@ -1,4 +1,6 @@
 import React, { ChangeEvent, useRef, useState } from 'react';
+import * as pdfjsLib from 'pdfjs-dist';
+import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { AppModal } from '../components/Layout/AppModal';
 import { AppButton } from '../components/Button/AppButton';
 import { AppFieldset } from '../components/Layout/AppFieldset';
@@ -9,6 +11,92 @@ export interface ScanningModuleProps {
   onClose: () => void;
 }
 
+export interface ExtractedDocumentDetail {
+  field: string;
+  value: string;
+}
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+
+const extractValue = (text: string, patterns: RegExp[]) => {
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match?.[1]?.trim()) return match[1].trim();
+  }
+  return 'Not found';
+};
+
+const parseDocumentText = (text: string): ExtractedDocumentDetail[] => {
+  const normalizedText = text.replace(/\u00a0/g, ' ').replace(/[ \t]+/g, ' ');
+  const lineItem = extractValue(normalizedText, [
+    /Description\s+([\s\S]*?)(?=HSN\s*:\s*\S+)/i,
+    /(?:Item|Product|Service)\s*(?:Description)?\s*:\s*([^\n]+)/i,
+  ]).replace(/\s+/g, ' ').trim();
+
+  return [
+    {
+      field: 'Invoice / Document Number',
+      value: extractValue(normalizedText, [
+        /Invoice\s+Number\s*:\s*([^\n]+)/i,
+        /(?:Document|Reference)\s+(?:Number|No\.?|ID)\s*:\s*([^\n]+)/i,
+      ]),
+    },
+    {
+      field: 'Date',
+      value: extractValue(normalizedText, [
+        /Invoice\s+Date\s*:\s*([^\n]+)/i,
+        /(?:Document|Issue|Order)\s+Date\s*:\s*([^\n]+)/i,
+        /Date\s*:\s*([^\n]+)/i,
+      ]),
+    },
+    {
+      field: 'Vendor / Sender',
+      value: extractValue(normalizedText, [
+        /Sold\s+By\s*:\s*([^\n]+)/i,
+        /(?:Vendor|Sender|From|Provider)\s*:\s*([^\n]+)/i,
+      ]),
+    },
+    {
+      field: 'Total Amount',
+      value: extractValue(normalizedText, [
+        /Invoice\s+Value\s*:\s*([^\n]+)/i,
+        /Total\s+Amount\s*:\s*([^\n]+)/i,
+        /TOTAL\s*:\s*[^\n]*?([₹$€£]?\s?[\d,]+(?:\.\d{2})?)/i,
+      ]),
+    },
+    {
+      field: 'Order Number',
+      value: extractValue(normalizedText, [
+        /Order\s+Number\s*:\s*([^\n]+)/i,
+        /Order\s+(?:No\.?|ID)\s*:\s*([^\n]+)/i,
+      ]),
+    },
+    { field: 'Line Items', value: lineItem },
+  ];
+};
+
+const extractPdfDetails = async (file: File): Promise<ExtractedDocumentDetail[]> => {
+  const document = await pdfjsLib.getDocument({
+    data: await file.arrayBuffer(),
+  }).promise;
+  const pageTexts: string[] = [];
+
+  for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
+    const page = await document.getPage(pageNumber);
+    const content = await page.getTextContent();
+    pageTexts.push(content.items
+      .map((item) => ('str' in item ? item.str : ''))
+      .filter(Boolean)
+      .join('\n'));
+  }
+
+  const text = pageTexts.join('\n');
+  if (!text.trim()) {
+    throw new Error('No selectable text was found. Scanned image PDFs require OCR before they can be parsed.');
+  }
+  return parseDocumentText(text);
+};
+
 export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
   const { theme } = useTheme();
   const [selectedOption, setSelectedOption] = useState('ABN Form Option 1');
@@ -17,7 +105,10 @@ export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
   const [uploadError, setUploadError] = useState('');
+  const [scanError, setScanError] = useState('');
+  const [extractedDetails, setExtractedDetails] = useState<ExtractedDocumentDetail[]>([]);
   const [documents, setDocuments] = useState([
     { type: 'Misc', notes: 'Imported File: 123.pdf', date: '09/15/2026', by: 'McConkey, Reec' }
   ]);
@@ -72,12 +163,14 @@ export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
       return;
     }
 
+    const uploadedFile = selectedFile;
     setIsUploading(true);
     setUploadError('');
+    setScanError('');
 
     try {
       const formData = new FormData();
-      formData.append('file', selectedFile);
+      formData.append('file', uploadedFile);
       formData.append('documentType', selectedFileType);
       formData.append('fileCategory', 'Patient Document');
 
@@ -95,7 +188,7 @@ export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
         ...currentDocuments,
         {
           type: selectedFileType,
-          notes: `${selectedFile.name} (${(selectedFile.size / 1024 / 1024).toFixed(2)} MB)`,
+          notes: `${uploadedFile.name} (${(uploadedFile.size / 1024 / 1024).toFixed(2)} MB)`,
           date: new Date().toLocaleDateString('en-US'),
           by: 'Current User',
         },
@@ -104,6 +197,16 @@ export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
       setIsUploadOpen(false);
+
+      setIsScanning(true);
+      try {
+        setExtractedDetails(await extractPdfDetails(uploadedFile));
+      } catch (error) {
+        setExtractedDetails([]);
+        setScanError(error instanceof Error ? error.message : 'The PDF could not be parsed.');
+      } finally {
+        setIsScanning(false);
+      }
     } catch (error) {
       setUploadError(error instanceof Error ? error.message : 'The document could not be stored.');
     } finally {
@@ -202,6 +305,41 @@ export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
           </AppFieldset>
 
         </div>
+
+        <AppFieldset legend="Extracted Document Details">
+          {isScanning && (
+            <div className="flex items-center gap-2 py-2 text-blue-700" role="status" aria-live="polite">
+              <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-blue-200 border-t-blue-700" />
+              <span>Scanning PDF and extracting document details...</span>
+            </div>
+          )}
+          {scanError && <p className="py-1 text-red-700 text-[11px]" role="alert">{scanError}</p>}
+          {!isScanning && !scanError && extractedDetails.length === 0 && (
+            <p className={theme === 'windows' ? 'py-1 text-[#808080]' : 'py-1 text-slate-400'}>
+              Upload a PDF to display extracted details.
+            </p>
+          )}
+          {extractedDetails.length > 0 && (
+            <div className={`max-h-48 overflow-y-auto border ${theme === 'windows' ? 'border-[#7F9DB9] bg-white' : 'border-slate-200 rounded-lg bg-white'}`}>
+              <table className={`w-full text-left ${theme === 'windows' ? 'text-[11px] text-black' : 'text-xs text-slate-700'}`}>
+                <thead>
+                  <tr className={theme === 'windows' ? 'bg-[#F0EEEF] border-b border-[#808080]' : 'bg-slate-100 border-b border-slate-200'}>
+                    <th className="p-1 font-semibold">Field Name</th>
+                    <th className="p-1 font-semibold">Extracted Value</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {extractedDetails.map((detail) => (
+                    <tr key={detail.field} className={theme === 'windows' ? 'border-b border-[#e0e0e0]' : 'border-b border-slate-100'}>
+                      <td className="p-1 font-medium align-top">{detail.field}</td>
+                      <td className="p-1 whitespace-pre-wrap break-words">{detail.value}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </AppFieldset>
       </div>
       {isUploadOpen && (
         <AppModal title="File to Import" onClose={() => setIsUploadOpen(false)}>
