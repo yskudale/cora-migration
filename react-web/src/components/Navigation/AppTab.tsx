@@ -26,8 +26,8 @@ export const AppTab: React.FC<AppTabProps> = ({
         onClick={onClick}
         className={`px-2 py-0.5 font-sans text-[11px] select-none cursor-pointer outline-none border-t border-l border-r -mb-[1px] ${
           active 
-            ? 'bg-[#D4D0C8] border-t-white border-l-white border-r-[#808080] text-black font-bold z-10 shadow-[1px_-1px_0px_#404040]' 
-            : 'bg-[#C0C0C0] border-t-white border-l-white border-r-[#808080] text-black font-normal hover:bg-[#D4D0C8]'
+            ? 'bg-[#F0EEEF] border-t-white border-l-white border-r-[#808080] text-black font-bold z-10 shadow-[1px_-1px_0px_#404040]' 
+            : 'bg-[#C0C0C0] border-t-white border-l-white border-r-[#808080] text-black font-normal hover:bg-[#F0EEEF]'
         } ${className}`}
         {...props}
       >

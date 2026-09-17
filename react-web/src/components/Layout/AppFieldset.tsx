@@ -20,11 +20,11 @@ export const AppFieldset: React.FC<AppFieldsetProps> = ({
   if (theme === 'windows') {
     return (
       <fieldset 
-        className={`border border-[#808080] shadow-[1px_1px_0px_#ffffff] p-2.5 text-[11px] font-sans relative bg-[#D4D0C8] ${className}`}
+        className={`border border-[#808080] shadow-[1px_1px_0px_#ffffff] p-2.5 text-[11px] font-sans relative bg-[#F0EEEF] ${className}`}
         {...props}
       >
         {legend && (
-          <legend className={`px-1 bg-[#D4D0C8] font-sans text-[11px] font-normal ${legendColor}`}>
+          <legend className={`px-1 bg-[#F0EEEF] font-sans text-[11px] font-normal ${legendColor}`}>
             {legend}
           </legend>
         )}

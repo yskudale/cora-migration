@@ -32,7 +32,7 @@ export const AppRecordNavBar: React.FC<AppRecordNavBarProps> = ({
 
   if (theme === 'windows') {
     return (
-      <div className={`flex items-center gap-1 bg-[#D4D0C8] p-0.5 border-t border-[#808080] font-sans text-[11px] text-black ${className}`} {...props}>
+      <div className={`flex items-center gap-1 bg-[#F0EEEF] p-0.5 border-t border-[#808080] font-sans text-[11px] text-black ${className}`} {...props}>
         <AppIconButton icon="|◄" title="First Record" onClick={onFirst} />
         <AppIconButton icon="◄" title="Previous Record" onClick={onPrev} />
         <AppIconButton icon="►" title="Next Record" onClick={onNext} />

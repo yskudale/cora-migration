@@ -17,9 +17,9 @@ export const AppModal: React.FC<AppModalProps> = ({
   if (theme === 'windows') {
     return (
       <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-[1000] p-2">
-        <div className="bg-[#D4D0C8] border-2 border-t-white border-l-white border-b-[#404040] border-r-[#404040] shadow-md w-[850px] max-w-full p-1 font-sans text-black">
+        <div className="bg-[#F0EEEF] border-2 border-t-white border-l-white border-b-[#404040] border-r-[#404040] shadow-md w-[850px] max-w-full p-1 font-sans text-black">
           {/* Java Swing Title Bar */}
-          <div className="bg-[#D4D0C8] px-2 py-0.5 flex justify-between items-center text-[12px] select-none font-sans border-b border-[#808080] mb-1">
+          <div className="bg-[#F0EEEF] px-2 py-0.5 flex justify-between items-center text-[12px] select-none font-sans border-b border-[#808080] mb-1">
             <div className="flex items-center gap-1.5 text-black font-normal">
               <span className="text-[14px] leading-none">☕</span>
               <span>{title}</span>
@@ -28,14 +28,14 @@ export const AppModal: React.FC<AppModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="w-4 h-4 bg-[#D4D0C8] border border-t-white border-l-white border-b-[#404040] border-r-[#404040] active:border-t-[#404040] active:border-l-[#404040] text-black font-bold text-[10px] leading-none flex items-center justify-center cursor-pointer"
+                className="w-4 h-4 bg-[#F0EEEF] border border-t-white border-l-white border-b-[#404040] border-r-[#404040] active:border-t-[#404040] active:border-l-[#404040] text-black font-bold text-[10px] leading-none flex items-center justify-center cursor-pointer"
               >
                 ✕
               </button>
             )}
           </div>
           {/* Window Body */}
-          <div className="p-2 bg-[#D4D0C8]">{children}</div>
+          <div className="p-2 bg-[#F0EEEF]">{children}</div>
         </div>
       </div>
     );

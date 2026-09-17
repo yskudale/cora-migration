@@ -26,7 +26,7 @@ export const AppSlider: React.FC<AppSliderProps> = ({
 
   if (theme === 'windows') {
     return (
-      <div className={`font-sans text-[11px] select-none bg-[#D4D0C8] ${className}`} {...props}>
+      <div className={`font-sans text-[11px] select-none bg-[#F0EEEF] ${className}`} {...props}>
         {label && (
           <div className="text-black font-normal mb-0.5">
             {label}: <span className="font-bold">{value}</span>

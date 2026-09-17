@@ -80,7 +80,7 @@ const ContextMenuItem: React.FC<ContextMenuItemProps> = ({ item, isWindows, onCl
         <div
           className={`absolute top-0 left-full ${
             isWindows
-              ? 'bg-[#D4D0C8] border-2 border-t-white border-l-white border-r-[#404040] border-b-[#404040] shadow-[2px_2px_0px_rgba(0,0,0,0.5)] py-0.5 min-w-[150px]'
+              ? 'bg-[#F0EEEF] border-2 border-t-white border-l-white border-r-[#404040] border-b-[#404040] shadow-[2px_2px_0px_rgba(0,0,0,0.5)] py-0.5 min-w-[150px]'
               : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl rounded-lg p-1 min-w-[160px]'
           }`}
         >
@@ -131,7 +131,7 @@ export const AppContextMenu: React.FC<AppContextMenuProps> = ({ x, y, isOpen, on
       style={{ top: `${y}px`, left: `${x}px` }}
       className={`fixed z-[9999] ${
         isWindows
-          ? 'bg-[#D4D0C8] border-2 border-t-white border-l-white border-r-[#404040] border-b-[#404040] shadow-[2px_2px_0px_rgba(0,0,0,0.5)] py-0.5 min-w-[180px]'
+          ? 'bg-[#F0EEEF] border-2 border-t-white border-l-white border-r-[#404040] border-b-[#404040] shadow-[2px_2px_0px_rgba(0,0,0,0.5)] py-0.5 min-w-[180px]'
           : 'bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200 dark:border-slate-800 shadow-xl rounded-lg p-1 min-w-[190px]'
       }`}
     >

@@ -64,7 +64,7 @@ export const AppMessageForm: React.FC<AppMessageFormProps> = ({
   };
 
   return (
-    <div className={`space-y-3 ${theme === 'windows' ? 'font-sans text-[11px] text-black bg-[#D4D0C8] p-2' : 'text-xs text-slate-800'} ${className}`} {...props}>
+    <div className={`space-y-3 ${theme === 'windows' ? 'font-sans text-[11px] text-black bg-[#F0EEEF] p-2' : 'text-xs text-slate-800'} ${className}`} {...props}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         <AppFormField label="To:">
           <AppInput value={toField} onChange={(e: ChangeEvent<HTMLInputElement>) => setToField(e.target.value)} className="w-full" />

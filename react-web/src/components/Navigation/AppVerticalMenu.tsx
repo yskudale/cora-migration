@@ -23,7 +23,7 @@ export const AppVerticalMenu: React.FC<AppVerticalMenuProps> = ({
 
   if (theme === 'windows') {
     return (
-      <div className={`flex flex-col gap-1 bg-[#D4D0C8] p-1 border border-[#808080] ${className}`} {...props}>
+      <div className={`flex flex-col gap-1 bg-[#F0EEEF] p-1 border border-[#808080] ${className}`} {...props}>
         {items.map((item, idx) => (
           <AppIconButton
             key={idx}

@@ -141,7 +141,7 @@ export const AppDataTable: React.FC<AppDataTableProps> = ({
           <tr
             className={
               isWindows
-                ? 'bg-[#D4D0C8] text-black border-b-2 border-[#808080]'
+                ? 'bg-[#F0EEEF] text-black border-b-2 border-[#808080]'
                 : 'bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700'
             }
           >

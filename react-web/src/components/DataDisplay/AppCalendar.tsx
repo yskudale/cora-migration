@@ -23,7 +23,7 @@ export const AppCalendar: React.FC<AppCalendarProps> = ({
 
   if (theme === 'windows') {
     return (
-      <div className={`bg-[#D4D0C8] border border-[#808080] p-1 font-sans text-[11px] select-none w-56 ${className}`} {...props}>
+      <div className={`bg-[#F0EEEF] border border-[#808080] p-1 font-sans text-[11px] select-none w-56 ${className}`} {...props}>
         {/* Month/Year Header */}
         <div className="flex items-center justify-between bg-white border border-[#7F9DB9] px-1.5 py-0.5 mb-1">
           <span className="font-bold text-black">{currentMonth} {currentYear}</span>
