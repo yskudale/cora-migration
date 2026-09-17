@@ -250,6 +250,22 @@ export const ComponentLibrary = () => {
         onSelectRow={(row) => setSelectedRow(row)}
         onSortChange={(field) => console.log('Sort changed to:', field)}
         onRowAction={(action, row) => console.log(`Action: ${action} on Row:`, row)}
+        contextMenuItems={[
+          {
+            id: 'sort_by',
+            label: 'Sort by',
+            submenu: [
+              { id: 'unsorted', label: '<unsorted>', onClick: () => console.log('Sort: unsorted') },
+              { id: 'patient', label: 'Patient', onClick: () => console.log('Sort: Patient') },
+              { id: 'date', label: 'Date', onClick: () => console.log('Sort: Date') },
+            ],
+          },
+          { type: 'separator' },
+          { id: 'post_changes', label: 'Post changes to current row', onClick: () => console.log('Post current row') },
+          { id: 'cancel_changes', label: 'Cancel changes to current row', onClick: () => console.log('Cancel current row') },
+          { id: 'insert_row', label: 'Insert new row', onClick: () => console.log('Insert new row') },
+          { id: 'delete_row', label: 'Delete current row', onClick: () => console.log('Delete current row') },
+        ]}
       />
     </div>
         {/* 6. Specialized Business Modules */}

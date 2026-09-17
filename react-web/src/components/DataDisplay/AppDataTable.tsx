@@ -15,7 +15,11 @@ export interface AppDataTableProps {
   selectedIndex?: number | null;
   onSelectRow?: (rowOrIndex: any) => void;
   onSortChange?: (fieldKey: string) => void;
-  onRowAction?: (action: 'post' | 'cancel' | 'insert' | 'delete', row: any) => void;
+  onRowAction?: (
+    action: 'view' | 'email' | 'edit' | 'mark_dispute' | 'change_scan_type',
+    row: any,
+  ) => void;
+  contextMenuItems?: ContextMenuItemConfig[];
 }
 
 interface MenuState {
@@ -34,6 +38,7 @@ export const AppDataTable: React.FC<AppDataTableProps> = ({
   onSelectRow,
   onSortChange,
   onRowAction,
+  contextMenuItems,
 }) => {
   const { theme } = useTheme();
   const isWindows = theme === 'windows';
@@ -80,7 +85,7 @@ export const AppDataTable: React.FC<AppDataTableProps> = ({
     });
   };
 
-  const contextMenuItems: ContextMenuItemConfig[] = [
+  const defaultContextMenuItems: ContextMenuItemConfig[] = [
     {
       id: 'sort_by',
       label: 'Sort by',
@@ -127,6 +132,8 @@ export const AppDataTable: React.FC<AppDataTableProps> = ({
       onClick: () => onRowAction?.('delete', menuState.activeRow),
     },
   ];
+
+  const resolvedContextMenuItems = contextMenuItems ?? defaultContextMenuItems;
 
   return (
     <div className="bg-white border-1 border-t-[#7F9DB9] border-l-[#7F9DB9] border-b-white border-r-white overflow-auto max-h-[160px] h-36">
@@ -203,7 +210,7 @@ export const AppDataTable: React.FC<AppDataTableProps> = ({
         y={menuState.y}
         isOpen={menuState.isOpen}
         onClose={() => setMenuState((prev) => ({ ...prev, isOpen: false }))}
-        items={contextMenuItems}
+        items={resolvedContextMenuItems}
       />
     </div>
   );

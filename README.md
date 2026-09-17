@@ -17,6 +17,7 @@ The desktop app launches web pages with module-specific URLs, and the React app 
 - React web modules for scanning and patient search
 - Dual-theme UI switching between Windows Classic and Modern Tailwind styles
 - Browser-to-desktop notification flow using local HTTP server on port 8080
+- PDF upload storage through the Java local HTTP server
 - Modular migration pattern for gradually moving legacy functionality to web interfaces
 
 ## Tech Stack
@@ -41,6 +42,9 @@ cora-migration/
 ├── How to run project.md
 ├── java-desktop/
 │   └── MainFrame.java
+├── javabackend/
+│   ├── .gitkeep
+│   └── uploads/              # Created automatically for uploaded PDFs
 └── react-web/
     ├── package.json
     ├── vite.config.js
@@ -92,6 +96,16 @@ javac MainFrame.java
 java MainFrame
 ```
 
+If you are running only the React web app, start the headless upload backend in a separate terminal:
+
+```bash
+cd javabackend
+javac FileUploadServer.java
+java FileUploadServer
+```
+
+Keep this process running while uploading. It listens on `http://localhost:8080` and stores files in `javabackend/uploads/`.
+
 This opens the desktop window with buttons such as:
 
 - Open Scanning
@@ -105,6 +119,9 @@ This opens the desktop window with buttons such as:
 - The React module loads based on the `module` query parameter
 - User actions in the web UI trigger a POST request to:
   - `http://localhost:8080/api/notify`
+- PDF uploads are sent to `http://localhost:8080/api/upload` and stored in:
+  - `javabackend/uploads/`
+- Uploads must be PDF files no larger than 10 MB.
 - Java receives the notification and updates the status bar in the desktop window
 
 ## Theme Switching
