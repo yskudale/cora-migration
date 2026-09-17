@@ -3,8 +3,10 @@ import * as pdfjsLib from 'pdfjs-dist';
 import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { AppModal } from '../components/Layout/AppModal';
 import { AppButton } from '../components/Button/AppButton';
+import { AppIconButton } from '../components/Button/AppIconButton';
 import { AppFieldset } from '../components/Layout/AppFieldset';
 import { AppDataTable } from '../components/DataDisplay/AppDataTable';
+import { AppInput } from '../components/Form/AppInput';
 import { useTheme } from '../context/ThemeContext';
 
 export interface ScanningModuleProps {
@@ -466,7 +468,7 @@ export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
             <div className="space-y-3 text-xs">
               <div className="flex items-center gap-2">
                 <label htmlFor="patient-document-file" className="w-28 shrink-0">File name:</label>
-                <input
+                <AppInput
                   ref={fileInputRef}
                   id="patient-document-file"
                   type="file"
@@ -544,51 +546,49 @@ export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
             onMouseDown={handleEmailDragStart}
           >
             <span>Enter Address</span>
-            <button
+            <AppIconButton
               type="button"
               onClick={() => setIsEmailModalOpen(false)}
+              icon="×"
+              title="Close email modal"
               className={theme === 'windows'
                 ? 'px-1 text-[16px] leading-none text-black hover:bg-[#d7d7d7]'
                 : 'px-1 text-[16px] leading-none text-slate-500 hover:bg-slate-200 rounded'}
               aria-label="Close email modal"
-            >
-              ×
-            </button>
+            />
           </div>
 
           <div className={theme === 'windows' ? 'p-2 bg-[#F0EEEF]' : 'p-2 bg-white'}>
             <label className={theme === 'windows' ? 'mb-1 block text-[11px] text-black' : 'mb-1 block text-[11px] text-slate-700'}>
               Recipient Email
             </label>
-            <input
+            <AppInput
               type="email"
               value={emailRecipients}
               onChange={(event) => setEmailRecipients(event.target.value)}
               placeholder="name@example.com"
               className={theme === 'windows'
-                ? 'h-8 w-full border border-[#7f9db9] bg-white p-1 text-[11px] text-black outline-none'
-                : 'h-8 w-full rounded border border-slate-300 bg-white p-1 text-[11px] text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500'}
+                ? ' w-full border border-[#7f9db9] bg-white p-1 text-[11px] text-black outline-none'
+                : 'p-1 w-full rounded border border-slate-300 bg-white text-[11px] text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500'}
             />
 
             <div className="mt-2 flex justify-end gap-2">
-              <button
+              <AppButton
                 type="button"
                 onClick={() => setIsEmailModalOpen(false)}
+                variant="secondary"
+                className={theme === 'windows'
+                  ? 'border border-[#7a7a7a] bg-[#efefef]  text-[11px] text-black hover:bg-[#e3e3e3]'
+                  : 'border border-slate-300 bg-white  text-[11px] text-slate-700 rounded hover:bg-slate-50'}
+              >OK</AppButton>
+              <AppButton
+                type="button"
+                onClick={() => setIsEmailModalOpen(false)}
+                variant="secondary"
                 className={theme === 'windows'
                   ? 'border border-[#7a7a7a] bg-[#efefef] px-2 py-1 text-[11px] text-black hover:bg-[#e3e3e3]'
                   : 'border border-slate-300 bg-white px-2 py-1 text-[11px] text-slate-700 rounded hover:bg-slate-50'}
-              >
-                OK
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsEmailModalOpen(false)}
-                className={theme === 'windows'
-                  ? 'border border-[#7a7a7a] bg-[#efefef] px-2 py-1 text-[11px] text-black hover:bg-[#e3e3e3]'
-                  : 'border border-slate-300 bg-white px-2 py-1 text-[11px] text-slate-700 rounded hover:bg-slate-50'}
-              >
-                Cancel
-              </button>
+              >Cancel</AppButton>
             </div>
           </div>
         </div>

@@ -1,11 +1,11 @@
-import React, { InputHTMLAttributes } from 'react';
+import React, { forwardRef, InputHTMLAttributes } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 
 export interface AppInputProps extends InputHTMLAttributes<HTMLInputElement> {
   variant?: 'default' | 'required';
 }
 
-export const AppInput: React.FC<AppInputProps> = ({ 
+export const AppInput = forwardRef<HTMLInputElement, AppInputProps>(({ 
   value, 
   onChange, 
   placeholder, 
@@ -15,13 +15,14 @@ export const AppInput: React.FC<AppInputProps> = ({
   variant = 'default',
   className = '', 
   ...props 
-}) => {
+}, ref) => {
   const { theme } = useTheme();
 
   if (theme === 'windows') {
     const bgClass = variant === 'required' ? 'bg-[#FFEFF2]' : (readOnly || disabled ? 'bg-[#F0EEEF]' : 'bg-white');
     return (
       <input
+        ref={ref}
         type={type}
         value={value}
         onChange={onChange}
@@ -37,6 +38,7 @@ export const AppInput: React.FC<AppInputProps> = ({
   const bgClass = variant === 'required' ? 'bg-rose-50 border-rose-300' : 'bg-white border-slate-300';
   return (
     <input
+      ref={ref}
       type={type}
       value={value}
       onChange={onChange}
@@ -47,4 +49,6 @@ export const AppInput: React.FC<AppInputProps> = ({
       {...props}
     />
   );
-};
+});
+
+AppInput.displayName = 'AppInput';
