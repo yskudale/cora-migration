@@ -11,9 +11,21 @@ export interface ScanningModuleProps {
   onClose: () => void;
 }
 
-export interface ExtractedDocumentDetail {
-  field: string;
-  value: string;
+export interface ExtractedDocumentDetails {
+  invoice: string;
+  date: string;
+  vendor: string;
+  amount: string;
+  orderNumber: string;
+  item: string;
+}
+
+interface UploadedDocument {
+  type: string;
+  notes: string;
+  date: string;
+  by: string;
+  extractedDetails?: ExtractedDocumentDetails;
 }
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
@@ -26,56 +38,41 @@ const extractValue = (text: string, patterns: RegExp[]) => {
   return 'Not found';
 };
 
-const parseDocumentText = (text: string): ExtractedDocumentDetail[] => {
+const parseDocumentText = (text: string): ExtractedDocumentDetails => {
   const normalizedText = text.replace(/\u00a0/g, ' ').replace(/[ \t]+/g, ' ');
   const lineItem = extractValue(normalizedText, [
     /Description\s+([\s\S]*?)(?=HSN\s*:\s*\S+)/i,
     /(?:Item|Product|Service)\s*(?:Description)?\s*:\s*([^\n]+)/i,
   ]).replace(/\s+/g, ' ').trim();
 
-  return [
-    {
-      field: 'Invoice / Document Number',
-      value: extractValue(normalizedText, [
+  return {
+    invoice: extractValue(normalizedText, [
         /Invoice\s+Number\s*:\s*([^\n]+)/i,
         /(?:Document|Reference)\s+(?:Number|No\.?|ID)\s*:\s*([^\n]+)/i,
       ]),
-    },
-    {
-      field: 'Date',
-      value: extractValue(normalizedText, [
+    date: extractValue(normalizedText, [
         /Invoice\s+Date\s*:\s*([^\n]+)/i,
         /(?:Document|Issue|Order)\s+Date\s*:\s*([^\n]+)/i,
         /Date\s*:\s*([^\n]+)/i,
       ]),
-    },
-    {
-      field: 'Vendor / Sender',
-      value: extractValue(normalizedText, [
+    vendor: extractValue(normalizedText, [
         /Sold\s+By\s*:\s*([^\n]+)/i,
         /(?:Vendor|Sender|From|Provider)\s*:\s*([^\n]+)/i,
       ]),
-    },
-    {
-      field: 'Total Amount',
-      value: extractValue(normalizedText, [
+    amount: extractValue(normalizedText, [
         /Invoice\s+Value\s*:\s*([^\n]+)/i,
         /Total\s+Amount\s*:\s*([^\n]+)/i,
         /TOTAL\s*:\s*[^\n]*?([₹$€£]?\s?[\d,]+(?:\.\d{2})?)/i,
       ]),
-    },
-    {
-      field: 'Order Number',
-      value: extractValue(normalizedText, [
+    orderNumber: extractValue(normalizedText, [
         /Order\s+Number\s*:\s*([^\n]+)/i,
         /Order\s+(?:No\.?|ID)\s*:\s*([^\n]+)/i,
       ]),
-    },
-    { field: 'Line Items', value: lineItem },
-  ];
+    item: lineItem,
+  };
 };
 
-const extractPdfDetails = async (file: File): Promise<ExtractedDocumentDetail[]> => {
+const extractPdfDetails = async (file: File): Promise<ExtractedDocumentDetails> => {
   const document = await pdfjsLib.getDocument({
     data: await file.arrayBuffer(),
   }).promise;
@@ -108,13 +105,14 @@ export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
   const [isScanning, setIsScanning] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const [scanError, setScanError] = useState('');
-  const [extractedDetails, setExtractedDetails] = useState<ExtractedDocumentDetail[]>([]);
-  const [documents, setDocuments] = useState([
+  const [documents, setDocuments] = useState<UploadedDocument[]>([
     { type: 'Misc', notes: 'Imported File: 123.pdf', date: '09/15/2026', by: 'McConkey, Reec' }
   ]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const documentHeaders = ['Type', 'Notes', 'Date Added', 'By'];
+  const selectedDocument = documents[selectedDocIndex];
+  const extractedDetails = selectedDocument?.extractedDetails;
 
   const statusItems = [
     { name: 'FCE', date: 'N/A' },
@@ -184,6 +182,7 @@ export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
         throw new Error(result?.error || 'The document could not be stored.');
       }
 
+      const uploadedDocumentIndex = documents.length;
       setDocuments((currentDocuments) => [
         ...currentDocuments,
         {
@@ -191,18 +190,23 @@ export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
           notes: `${uploadedFile.name} (${(uploadedFile.size / 1024 / 1024).toFixed(2)} MB)`,
           date: new Date().toLocaleDateString('en-US'),
           by: 'Current User',
+          extractedDetails: undefined,
         },
       ]);
-      setSelectedDocIndex(documents.length);
+      setSelectedDocIndex(uploadedDocumentIndex);
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
       setIsUploadOpen(false);
 
       setIsScanning(true);
       try {
-        setExtractedDetails(await extractPdfDetails(uploadedFile));
+        const parsedDetails = await extractPdfDetails(uploadedFile);
+        setDocuments((currentDocuments) => currentDocuments.map((document, index) => (
+          index === uploadedDocumentIndex
+            ? { ...document, extractedDetails: parsedDetails }
+            : document
+        )));
       } catch (error) {
-        setExtractedDetails([]);
         setScanError(error instanceof Error ? error.message : 'The PDF could not be parsed.');
       } finally {
         setIsScanning(false);
@@ -225,7 +229,10 @@ export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
               headers={documentHeaders}
               data={documents}
               selectedIndex={selectedDocIndex}
-              onSelectRow={(idx) => setSelectedDocIndex(idx)}
+              onSelectRow={(idx) => {
+                setSelectedDocIndex(idx);
+                setScanError('');
+              }}
               contextMenuItems={[
                 { id: 'view_row', label: 'View', onClick: () => alert('View document') },
                 { id: 'email_row', label: 'Email', onClick: () => alert('Email document') },
@@ -314,27 +321,33 @@ export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
             </div>
           )}
           {scanError && <p className="py-1 text-red-700 text-[11px]" role="alert">{scanError}</p>}
-          {!isScanning && !scanError && extractedDetails.length === 0 && (
+          {!isScanning && !scanError && !extractedDetails && (
             <p className={theme === 'windows' ? 'py-1 text-[#808080]' : 'py-1 text-slate-400'}>
               Upload a PDF to display extracted details.
             </p>
           )}
-          {extractedDetails.length > 0 && (
+          {extractedDetails && (
             <div className={`max-h-48 overflow-y-auto border ${theme === 'windows' ? 'border-[#7F9DB9] bg-white' : 'border-slate-200 rounded-lg bg-white'}`}>
               <table className={`w-full text-left ${theme === 'windows' ? 'text-[11px] text-black' : 'text-xs text-slate-700'}`}>
                 <thead>
                   <tr className={theme === 'windows' ? 'bg-[#F0EEEF] border-b border-[#808080]' : 'bg-slate-100 border-b border-slate-200'}>
-                    <th className="p-1 font-semibold">Field Name</th>
-                    <th className="p-1 font-semibold">Extracted Value</th>
+                    <th className="p-1 font-semibold">Invoice</th>
+                    <th className="p-1 font-semibold">Date</th>
+                    <th className="p-1 font-semibold">Vendore</th>
+                    <th className="p-1 font-semibold">Amount</th>
+                    <th className="p-1 font-semibold">Order No</th>
+                    <th className="p-1 font-semibold">Iteam</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {extractedDetails.map((detail) => (
-                    <tr key={detail.field} className={theme === 'windows' ? 'border-b border-[#e0e0e0]' : 'border-b border-slate-100'}>
-                      <td className="p-1 font-medium align-top">{detail.field}</td>
-                      <td className="p-1 whitespace-pre-wrap break-words">{detail.value}</td>
-                    </tr>
-                  ))}
+                  <tr className={theme === 'windows' ? 'border-b border-[#e0e0e0]' : 'border-b border-slate-100'}>
+                    <td className="p-1 whitespace-pre-wrap break-words">{extractedDetails.invoice}</td>
+                    <td className="p-1 whitespace-pre-wrap break-words">{extractedDetails.date}</td>
+                    <td className="p-1 whitespace-pre-wrap break-words">{extractedDetails.vendor}</td>
+                    <td className="p-1 whitespace-pre-wrap break-words">{extractedDetails.amount}</td>
+                    <td className="p-1 whitespace-pre-wrap break-words">{extractedDetails.orderNumber}</td>
+                    <td className="p-1 whitespace-pre-wrap break-words">{extractedDetails.item}</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
