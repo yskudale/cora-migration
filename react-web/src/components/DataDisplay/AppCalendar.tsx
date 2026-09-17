@@ -4,13 +4,17 @@ import { AppIconButton } from '../Button/AppIconButton';
 
 export interface AppCalendarProps extends HTMLAttributes<HTMLDivElement> {
   selectedDay?: number;
+  selectedDate?: string;
   onSelectDate?: (date: Date) => void;
+  title?: string;
   className?: string;
 }
 
 export const AppCalendar: React.FC<AppCalendarProps> = ({ 
   selectedDay: controlledSelectedDay,
+  selectedDate, // Destructured here to prevent bleeding into ...props
   onSelectDate,
+  title = 'APPOINTMENT DATES',
   className = '',
   ...props 
 }) => {

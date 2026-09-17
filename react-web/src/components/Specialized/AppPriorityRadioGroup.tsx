@@ -1,4 +1,4 @@
-import React, { HTMLAttributes, ChangeEvent } from 'react';
+import React, { HTMLAttributes, ChangeEvent, useId } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 import { AppRadioButton } from '../Form/AppRadioButton';
 import { AppLabel } from '../Form/AppLabel';
@@ -13,11 +13,13 @@ export interface AppPriorityRadioGroupProps extends Omit<HTMLAttributes<HTMLDivE
 export const AppPriorityRadioGroup: React.FC<AppPriorityRadioGroupProps> = ({ 
   value = 'Medium', 
   onChange, 
-  name = 'priorityGroup',
+  name,
   className = '',
   ...props 
 }) => {
   const { theme } = useTheme();
+  const generatedId = useId();
+  const groupName = name || `priority-${generatedId}`;
 
   const options = [
     { label: 'High', value: 'High' },
@@ -37,7 +39,7 @@ export const AppPriorityRadioGroup: React.FC<AppPriorityRadioGroupProps> = ({
           {options.map((opt) => (
             <AppRadioButton
               key={opt.value}
-              name={name}
+              name={groupName}
               label={opt.label}
               value={opt.value}
               checked={value === opt.value}
@@ -56,7 +58,7 @@ export const AppPriorityRadioGroup: React.FC<AppPriorityRadioGroupProps> = ({
         {options.map((opt) => (
           <AppRadioButton
             key={opt.value}
-            name={name}
+            name={groupName}
             label={opt.label}
             value={opt.value}
             checked={value === opt.value}
