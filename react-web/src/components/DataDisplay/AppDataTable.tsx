@@ -129,11 +129,11 @@ export const AppDataTable: React.FC<AppDataTableProps> = ({
   ];
 
   return (
-    <div className="w-full overflow-x-auto">
+    <div className="bg-white border-1 border-t-[#7F9DB9] border-l-[#7F9DB9] border-b-white border-r-white overflow-auto max-h-[160px] h-36">
       <table
         className={`w-full text-left border-collapse ${
           isWindows
-            ? 'bg-white text-xs font-sans border-2 border-[#808080]'
+            ? 'bg-white text-xs font-sans border-1 border-[#808080]'
             : 'bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-200'
         }`}
       >

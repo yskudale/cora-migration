@@ -2,7 +2,7 @@ import React, { ChangeEvent, useState } from 'react';
 import { AppModal } from '../components/Layout/AppModal';
 import { AppButton } from '../components/Button/AppButton';
 import { AppFieldset } from '../components/Layout/AppFieldset';
-import { AppDataTable } from '../components/AppDataTable1';
+import { AppDataTable } from '../components/DataDisplay/AppDataTable';
 import { useTheme } from '../context/ThemeContext';
 
 export interface ScanningModuleProps {
