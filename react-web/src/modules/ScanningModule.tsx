@@ -533,45 +533,59 @@ export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
             width: '320px',
             zIndex: 1000,
           }}
-          className="border border-[#b8b8b8] bg-[#efefef] shadow-[2px_2px_0px_rgba(0,0,0,0.25)]"
+          className={theme === 'windows'
+            ? 'border-2 border-t-white border-l-white border-b-[#404040] border-r-[#404040] bg-[#F0EEEF] shadow-[2px_2px_0px_rgba(0,0,0,0.25)]'
+            : 'border border-slate-200 bg-white shadow-xl rounded-lg'}
         >
           <div
-            className="flex cursor-move items-center justify-between border-b border-[#b8b8b8] bg-[#efefef] px-2 py-1 text-[12px] font-medium text-black"
+            className={theme === 'windows'
+              ? 'flex cursor-move items-center justify-between border-b border-[#808080] bg-[#F0EEEF] px-2 py-1 text-[12px] font-medium text-black'
+              : 'flex cursor-move items-center justify-between border-b border-slate-200 bg-slate-50 px-2 py-1 text-[12px] font-medium text-slate-800 rounded-t-lg'}
             onMouseDown={handleEmailDragStart}
           >
             <span>Enter Address</span>
             <button
               type="button"
               onClick={() => setIsEmailModalOpen(false)}
-              className="px-1 text-[16px] leading-none hover:bg-[#d7d7d7]"
+              className={theme === 'windows'
+                ? 'px-1 text-[16px] leading-none text-black hover:bg-[#d7d7d7]'
+                : 'px-1 text-[16px] leading-none text-slate-500 hover:bg-slate-200 rounded'}
               aria-label="Close email modal"
             >
               ×
             </button>
           </div>
 
-          <div className="p-2">
-            <label className="mb-1 block text-[11px] text-black">
-              Recipients Address: <span className="text-[10px]">(separate addresses with a comma)</span>
+          <div className={theme === 'windows' ? 'p-2 bg-[#F0EEEF]' : 'p-2 bg-white'}>
+            <label className={theme === 'windows' ? 'mb-1 block text-[11px] text-black' : 'mb-1 block text-[11px] text-slate-700'}>
+              Recipient Email
             </label>
-            <textarea
+            <input
+              type="email"
               value={emailRecipients}
               onChange={(event) => setEmailRecipients(event.target.value)}
-              className="h-16 w-full resize-none border border-[#7f9db9] bg-white p-1 text-[11px] outline-none"
+              placeholder="name@example.com"
+              className={theme === 'windows'
+                ? 'h-8 w-full border border-[#7f9db9] bg-white p-1 text-[11px] text-black outline-none'
+                : 'h-8 w-full rounded border border-slate-300 bg-white p-1 text-[11px] text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500'}
             />
 
             <div className="mt-2 flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setIsEmailModalOpen(false)}
-                className="border border-[#7a7a7a] bg-[#efefef] px-2 py-1 text-[11px] text-black hover:bg-[#e3e3e3]"
+                className={theme === 'windows'
+                  ? 'border border-[#7a7a7a] bg-[#efefef] px-2 py-1 text-[11px] text-black hover:bg-[#e3e3e3]'
+                  : 'border border-slate-300 bg-white px-2 py-1 text-[11px] text-slate-700 rounded hover:bg-slate-50'}
               >
                 OK
               </button>
               <button
                 type="button"
                 onClick={() => setIsEmailModalOpen(false)}
-                className="border border-[#7a7a7a] bg-[#efefef] px-2 py-1 text-[11px] text-black hover:bg-[#e3e3e3]"
+                className={theme === 'windows'
+                  ? 'border border-[#7a7a7a] bg-[#efefef] px-2 py-1 text-[11px] text-black hover:bg-[#e3e3e3]'
+                  : 'border border-slate-300 bg-white px-2 py-1 text-[11px] text-slate-700 rounded hover:bg-slate-50'}
               >
                 Cancel
               </button>
