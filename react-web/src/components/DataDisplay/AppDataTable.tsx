@@ -60,6 +60,7 @@ export const AppDataTable: React.FC<AppDataTableProps> = ({
         'Notes': 'notes',
         'Date Added': 'date',
         'By': 'by',
+        'Status': 'status',
       };
       return headers.map((h) => ({
         key: keyMap[h] || h.toLowerCase().replace(/\s+/g, ''),
@@ -189,16 +190,21 @@ export const AppDataTable: React.FC<AppDataTableProps> = ({
                     : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'
                 }`}
               >
-                {effectiveColumns.map((col) => (
-                  <td
-                    key={col.key}
-                    className={`p-[2px] whitespace-nowrap ${
-                      isWindows ? 'border-r border-b border-[#e0e0e0]' : ''
-                    }`}
-                  >
-                    {row[col.key]}
-                  </td>
-                ))}
+                {effectiveColumns.map((col) => {
+                  const cellValue = row[col.key] ?? (col.key === 'status' ? 'Active' : '');
+                  const isDisputedStatus = col.key === 'status' && cellValue === 'Disputed';
+
+                  return (
+                    <td
+                      key={col.key}
+                      className={`p-[2px] whitespace-nowrap ${
+                        isWindows ? 'border-r border-b border-[#e0e0e0]' : ''
+                      } ${isDisputedStatus ? 'text-red-600 font-semibold' : ''}`}
+                    >
+                      {isDisputedStatus ? 'Disputed' : cellValue}
+                    </td>
+                  );
+                })}
               </tr>
             );
           })}

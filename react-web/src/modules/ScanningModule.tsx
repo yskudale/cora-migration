@@ -25,13 +25,14 @@ interface UploadedDocument {
   notes: string;
   date: string;
   by: string;
+  status: string;
   extractedDetails?: ExtractedDocumentDetails;
 }
 
 const DOCUMENTS_STORAGE_KEY = 'cora-scanning-documents';
 const SELECTED_DOCUMENT_STORAGE_KEY = 'cora-selected-document-index';
 const initialDocuments: UploadedDocument[] = [
-  { type: 'Misc', notes: 'Imported File: 123.pdf', date: '09/15/2026', by: 'McConkey, Reec' },
+  { type: 'Misc', notes: 'Imported File: 123.pdf', date: '09/15/2026', by: 'McConkey, Reec', status: 'Active' },
 ];
 
 const loadStoredDocuments = (): UploadedDocument[] => {
@@ -40,7 +41,19 @@ const loadStoredDocuments = (): UploadedDocument[] => {
     if (!storedDocuments) return initialDocuments;
 
     const parsedDocuments: unknown = JSON.parse(storedDocuments);
-    return Array.isArray(parsedDocuments) ? parsedDocuments as UploadedDocument[] : initialDocuments;
+    if (!Array.isArray(parsedDocuments)) return initialDocuments;
+
+    return parsedDocuments.map((document) => {
+      const typedDocument = document as Partial<UploadedDocument>;
+      return {
+        type: typedDocument.type ?? 'Misc',
+        notes: typedDocument.notes ?? 'Imported File',
+        date: typedDocument.date ?? new Date().toLocaleDateString('en-US'),
+        by: typedDocument.by ?? 'Current User',
+        status: typedDocument.status ?? 'Active',
+        extractedDetails: typedDocument.extractedDetails,
+      };
+    });
   } catch {
     return initialDocuments;
   }
@@ -143,9 +156,15 @@ export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
     } catch { }
   }, [selectedDocIndex]);
 
-  const documentHeaders = ['Type', 'Notes', 'Date Added', 'By'];
+  const documentHeaders = ['Type', 'Notes', 'Date Added', 'By', 'Status'];
   const selectedDocument = documents[selectedDocIndex];
   const extractedDetails = selectedDocument?.extractedDetails;
+
+  const handleMarkDocumentAsDisputed = () => {
+    setDocuments((currentDocuments) => currentDocuments.map((document, index) => (
+      index === selectedDocIndex ? { ...document, status: 'Disputed' } : document
+    )));
+  };
 
   const statusItems = [
     { name: 'FCE', date: 'N/A' },
@@ -223,6 +242,7 @@ export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
           notes: `${uploadedFile.name} (${(uploadedFile.size / 1024 / 1024).toFixed(2)} MB)`,
           date: new Date().toLocaleDateString('en-US'),
           by: 'Current User',
+          status: 'Active',
           extractedDetails: undefined,
         },
       ]);
@@ -236,10 +256,15 @@ export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
         const parsedDetails = await extractPdfDetails(uploadedFile);
         setDocuments((currentDocuments) => currentDocuments.map((document, index) => (
           index === uploadedDocumentIndex
-            ? { ...document, extractedDetails: parsedDetails }
+            ? { ...document, status: 'Active', extractedDetails: parsedDetails }
             : document
         )));
       } catch (error) {
+        setDocuments((currentDocuments) => currentDocuments.map((document, index) => (
+          index === uploadedDocumentIndex
+            ? { ...document, status: 'Active', extractedDetails: undefined }
+            : document
+        )));
         setScanError(error instanceof Error ? error.message : 'The PDF could not be parsed.');
       } finally {
         setIsScanning(false);
@@ -270,7 +295,7 @@ export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
                 { id: 'view_row', label: 'View', onClick: () => alert('View document') },
                 { id: 'email_row', label: 'Email', onClick: () => alert('Email document') },
                 { id: 'edit_row', label: 'Edit', onClick: () => alert('Edit document') },
-                { id: 'mark_dispute', label: 'Mark Dispute', onClick: () => alert('Mark Dispute') },
+                { id: 'mark_dispute', label: 'Mark as Disputed', onClick: handleMarkDocumentAsDisputed },
                 { id: 'change_scan_type', label: 'Change Scan Type', onClick: () => alert('Change Scan Type') },
               ]}
             />
