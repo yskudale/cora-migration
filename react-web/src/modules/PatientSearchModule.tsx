@@ -1,13 +1,21 @@
-import React, { useState } from 'react';
+import React, { ChangeEvent, useState } from 'react';
 import { AppModal } from '../components/Layout/AppModal';
 import { AppButton } from '../components/Button/AppButton';
 import { AppInput } from '../components/Layout/AppInput';
 
-export const PatientSearchModule = ({ onClose }) => {
+export interface PatientSearchModuleProps {
+  onClose: () => void;
+}
+
+export const PatientSearchModule = ({ onClose }: PatientSearchModuleProps) => {
   const queryParams = new URLSearchParams(window.location.search);
   const initialPatientId = queryParams.get('patientId') || '';
 
   const [searchTerm, setSearchTerm] = useState(initialPatientId);
+
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+  };
 
   return (
     <AppModal title="Patient Search Module" onClose={onClose}>
@@ -17,7 +25,7 @@ export const PatientSearchModule = ({ onClose }) => {
         <div className="flex gap-2">
           <AppInput 
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={handleChange}
             placeholder="Search patient..." 
             className="flex-1"
           />

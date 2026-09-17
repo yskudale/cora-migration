@@ -71,7 +71,7 @@ export const ComponentLibrary = () => {
     ? 'bg-[#F0EEEF] border-2 border-t-white border-l-white border-b-[#404040] border-r-[#404040] p-4 font-sans text-black'
     : 'bg-white rounded-xl shadow-sm border border-slate-200 p-4';
 
-    const [selectedRow, setSelectedRow] = useState(null);
+    const [selectedRow, setSelectedRow] = useState<{ id: string } | null>(null);
 
   const columns = [
     { key: 'patientName', header: 'Patient Name' },

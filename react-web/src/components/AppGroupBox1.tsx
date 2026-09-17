@@ -1,7 +1,14 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { useTheme } from '../context/ThemeContext';
 
-export const AppGroupBox = ({ title, children, titleColor = '#000', borderColor = '#7F9DB9' }) => {
+export interface AppGroupBoxProps {
+  title: string;
+  children?: ReactNode;
+  titleColor?: string;
+  borderColor?: string;
+}
+
+export const AppGroupBox = ({ title, children, titleColor = '#000', borderColor = '#7F9DB9' }: AppGroupBoxProps) => {
   const { theme } = useTheme();
 
   // Windows Classic Style (Fieldset / Legend Box)

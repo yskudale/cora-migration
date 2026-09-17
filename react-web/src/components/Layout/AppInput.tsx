@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { InputHTMLAttributes } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 
-export const AppInput = ({ value, onChange, placeholder, className = '', ...props }) => {
+export interface AppInputProps extends InputHTMLAttributes<HTMLInputElement> {
+  className?: string;
+}
+
+export const AppInput = ({ value, onChange, placeholder, className = '', ...props }: AppInputProps) => {
   const { theme } = useTheme();
 
   // Windows Classic Style via Tailwind

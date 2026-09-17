@@ -5,6 +5,7 @@ export type ThemeMode = 'windows' | 'modern' | string;
 export interface ThemeContextType {
   theme: string;
   setTheme: React.Dispatch<React.SetStateAction<string>>;
+  toggleTheme: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -14,8 +15,12 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const initialTheme = queryParams.get('theme') || 'windows';
   const [theme, setTheme] = useState<string>(initialTheme);
 
+  const toggleTheme = () => {
+    setTheme((currentTheme) => (currentTheme === 'windows' ? 'modern' : 'windows'));
+  };
+
   return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
+    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );

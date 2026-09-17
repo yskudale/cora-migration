@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
+import React, { ChangeEvent, useState } from 'react';
 import { AppModal } from '../components/Layout/AppModal';
 import { AppButton } from '../components/Button/AppButton';
 import { AppFieldset } from '../components/Layout/AppFieldset';
 import { AppDataTable } from '../components/AppDataTable1';
 import { useTheme } from '../context/ThemeContext';
 
-export const ScanningModule = ({ onClose }) => {
+export interface ScanningModuleProps {
+  onClose: () => void;
+}
+
+export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
   const { theme } = useTheme();
   const [selectedOption, setSelectedOption] = useState('ABN Form Option 1');
   const [selectedDocIndex, setSelectedDocIndex] = useState(0);
@@ -30,6 +34,10 @@ export const ScanningModule = ({ onClose }) => {
     { name: 'State Issued ID - Back', date: 'N/A' },
     { name: 'State Issued ID - Front', date: 'N/A' }
   ];
+
+  const handleSelectChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    setSelectedOption(event.target.value);
+  };
 
   return (
     <AppModal title="E-Docs for Patient #1612403 : RefstatTest7, Brandon" onClose={onClose}>
@@ -88,7 +96,7 @@ export const ScanningModule = ({ onClose }) => {
               <div className="flex gap-2 items-center">
                 <select 
                   value={selectedOption}
-                  onChange={(e) => setSelectedOption(e.target.value)}
+                  onChange={handleSelectChange}
                   className={theme === 'windows' 
                     ? 'border-2 border-t-[#7F9DB9] border-l-[#7F9DB9] border-b-white border-r-white bg-white text-[11px] p-1 flex-1 outline-none' 
                     : 'border border-slate-300 rounded-lg text-xs p-2 flex-1 bg-white focus:ring-2 focus:ring-indigo-500 outline-none'}
