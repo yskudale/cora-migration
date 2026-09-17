@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useRef, useState } from 'react';
+import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 import pdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { AppModal } from '../components/Layout/AppModal';
@@ -27,6 +27,29 @@ interface UploadedDocument {
   by: string;
   extractedDetails?: ExtractedDocumentDetails;
 }
+
+const DOCUMENTS_STORAGE_KEY = 'cora-scanning-documents';
+const SELECTED_DOCUMENT_STORAGE_KEY = 'cora-selected-document-index';
+const initialDocuments: UploadedDocument[] = [
+  { type: 'Misc', notes: 'Imported File: 123.pdf', date: '09/15/2026', by: 'McConkey, Reec' },
+];
+
+const loadStoredDocuments = (): UploadedDocument[] => {
+  try {
+    const storedDocuments = localStorage.getItem(DOCUMENTS_STORAGE_KEY);
+    if (!storedDocuments) return initialDocuments;
+
+    const parsedDocuments: unknown = JSON.parse(storedDocuments);
+    return Array.isArray(parsedDocuments) ? parsedDocuments as UploadedDocument[] : initialDocuments;
+  } catch {
+    return initialDocuments;
+  }
+};
+
+const loadStoredSelectedDocument = () => {
+  const storedIndex = Number(localStorage.getItem(SELECTED_DOCUMENT_STORAGE_KEY));
+  return Number.isInteger(storedIndex) && storedIndex >= 0 ? storedIndex : 0;
+};
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
 
@@ -97,7 +120,7 @@ const extractPdfDetails = async (file: File): Promise<ExtractedDocumentDetails> 
 export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
   const { theme } = useTheme();
   const [selectedOption, setSelectedOption] = useState('ABN Form Option 1');
-  const [selectedDocIndex, setSelectedDocIndex] = useState(0);
+  const [selectedDocIndex, setSelectedDocIndex] = useState(loadStoredSelectedDocument);
   const [selectedFileType, setSelectedFileType] = useState('ABN Form Option 1');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -105,10 +128,20 @@ export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
   const [isScanning, setIsScanning] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const [scanError, setScanError] = useState('');
-  const [documents, setDocuments] = useState<UploadedDocument[]>([
-    { type: 'Misc', notes: 'Imported File: 123.pdf', date: '09/15/2026', by: 'McConkey, Reec' }
-  ]);
+  const [documents, setDocuments] = useState<UploadedDocument[]>(loadStoredDocuments);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(DOCUMENTS_STORAGE_KEY, JSON.stringify(documents));
+    } catch { }
+  }, [documents]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(SELECTED_DOCUMENT_STORAGE_KEY, String(selectedDocIndex));
+    } catch { }
+  }, [selectedDocIndex]);
 
   const documentHeaders = ['Type', 'Notes', 'Date Added', 'By'];
   const selectedDocument = documents[selectedDocIndex];
