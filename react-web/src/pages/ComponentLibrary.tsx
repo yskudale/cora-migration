@@ -277,7 +277,7 @@ export const ComponentLibrary = () => {
         {/* 7. AppModal Window Trigger */}
         <div className={`md:col-span-2 ${panelContainerClass}`}>
           <h2 className="text-sm font-bold mb-3 border-b pb-1">7. Frame Window Container (AppModal)</h2>
-          <AppButton onClick={() => setIsModalOpen(true)}>
+          <AppButton onClick={() => setIsModalOpen(true)} variant="secondary">
             Launch Preview AppModal Frame
           </AppButton>
 

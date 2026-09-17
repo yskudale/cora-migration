@@ -120,14 +120,18 @@ export const AppMessageForm: React.FC<AppMessageFormProps> = ({
       />
 
       <div className="flex justify-between items-center pt-2">
-        <AppButton onClick={onPrint}>Print</AppButton>
+        <AppButton onClick={onPrint} variant="outline">
+          Print
+        </AppButton>
         <div className="flex gap-2">
-          <AppButton 
+          <AppButton variant="primary"  
             onClick={() => onSend && onSend({ toField, fromField, admissionField, subjectField, itemRequestedField, priority, message, replyFrom, reply, attachments })}
           >
             Send
           </AppButton>
-          <AppButton onClick={onCancel}>Cancel</AppButton>
+          <AppButton onClick={onCancel} variant="secondary">
+            Cancel
+          </AppButton>
         </div>
       </div>
     </div>
