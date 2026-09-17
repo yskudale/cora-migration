@@ -175,7 +175,7 @@ export const AppDataTable: React.FC<AppDataTableProps> = ({
                 className={`cursor-pointer ${
                   isWindows
                     ? isSelected
-                      ? 'bg-[#000080] text-white'
+                      ? 'bg-blue-600 text-white'
                       : 'hover:bg-gray-100 text-black'
                     : isSelected
                     ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 font-medium'

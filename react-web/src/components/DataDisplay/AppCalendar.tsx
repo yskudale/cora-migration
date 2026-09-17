@@ -48,7 +48,7 @@ export const AppCalendar: React.FC<AppCalendarProps> = ({
                 onClick={() => onSelectDate && onSelectDate(day)}
                 className={`py-0.5 text-[11px] cursor-pointer ${
                   isSelected 
-                    ? 'bg-[#000080] text-white font-bold' 
+                    ? 'bg-blue-600 text-white font-bold' 
                     : 'bg-white text-black hover:bg-[#ECE9D8]'
                 }`}
               >

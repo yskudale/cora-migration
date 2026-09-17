@@ -29,7 +29,7 @@ export const AppVerticalTabList: React.FC<AppVerticalTabListProps> = ({
               onClick={() => onTabChange && onTabChange(tab)}
               className={`w-5 h-5 font-sans text-[11px] border flex items-center justify-center cursor-pointer ${
                 isActive
-                  ? 'bg-[#000080] text-white font-bold border-[#000080]'
+                  ? 'bg-blue-600 text-white font-bold border-[#000080]'
                   : 'bg-[#C0C0C0] text-black border-t-white border-l-white border-b-[#404040] border-r-[#404040]'
               }`}
             >

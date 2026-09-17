@@ -33,7 +33,7 @@ export const AppAttachmentPanel: React.FC<AppAttachmentPanelProps> = ({
                 {attachments.map((file, idx) => {
                   const fileName = typeof file === 'string' ? file : file.name;
                   return (
-                    <li key={idx} className="flex justify-between items-center hover:bg-[#000080] hover:text-white px-1">
+                    <li key={idx} className="flex justify-between items-center hover:bg-blue-600 hover:text-white px-1">
                       <span>📎 {fileName}</span>
                       {onRemoveAttachment && (
                         <button 

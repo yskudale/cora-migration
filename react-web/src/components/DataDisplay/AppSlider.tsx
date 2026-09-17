@@ -40,7 +40,7 @@ export const AppSlider: React.FC<AppSliderProps> = ({
             step={step}
             value={value}
             onChange={onChange}
-            className="w-full accent-[#000080] cursor-pointer h-4 bg-transparent"
+            className="w-full   cursor-pointer h-4 bg-transparent"
           />
           {/* JSlider Tick Lines & Labels */}
           <div className="flex justify-between text-[9px] text-black px-1.5 -mt-1">

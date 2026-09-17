@@ -54,7 +54,7 @@ const ContextMenuItem: React.FC<ContextMenuItemProps> = ({ item, isWindows, onCl
             ? `px-2 py-[2px] text-xs font-sans ${
                 item.disabled
                   ? 'text-gray-400 cursor-default'
-                  : 'text-black hover:bg-[#000080] hover:text-white cursor-pointer'
+                  : 'text-black hover:bg-blue-600 hover:text-white cursor-pointer'
               }`
             : `px-3 py-1.5 text-sm rounded-md transition-colors ${
                 item.disabled

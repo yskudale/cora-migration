@@ -27,7 +27,7 @@ export const AppRadioButton: React.FC<AppRadioButtonProps> = ({
           checked={checked}
           onChange={onChange}
           disabled={disabled}
-          className="w-3.5 h-3.5 accent-[#000080] cursor-pointer"
+          className="w-3.5 h-3.5   cursor-pointer"
           {...props}
         />
         {label && <span>{label}</span>}
