@@ -353,9 +353,9 @@ export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
 
               <div className="flex gap-2 justify-between pt-1">
                 <div className="flex gap-2">
-                  <AppButton onClick={() => alert("File All clicked")}>File All</AppButton>
-                  <AppButton onClick={() => alert("Print All clicked")}>Print All</AppButton>
-                  <AppButton onClick={() => alert("View All clicked")}>View All</AppButton>
+                  <AppButton variant='secondary' onClick={() => alert("File All clicked")}>File All</AppButton>
+                  <AppButton variant='secondary' onClick={() => alert("Print All clicked")}>Print All</AppButton>
+                  <AppButton variant='secondary' onClick={() => alert("View All clicked")}>View All</AppButton>
                 </div>
                 <div className="flex items-center gap-2">
                   <AppButton onClick={() => setIsUploadOpen(true)}>Upload File</AppButton>
@@ -475,7 +475,7 @@ export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
                   accept="application/pdf,.pdf"
                   onChange={handleFileSelected}
                   className={theme === 'windows'
-                    ? 'border-2 border-t-[#7F9DB9] border-l-[#7F9DB9] border-b-white border-r-white bg-white p-1 flex-1'
+                    ? 'border-1 border-t-[#7F9DB9] h-[32px] py-1 border-l-[#7F9DB9] border-b-white border-r-white bg-white p-1 flex-1'
                     : 'border border-slate-300 rounded-lg p-2 flex-1'}
                 />
               </div>
