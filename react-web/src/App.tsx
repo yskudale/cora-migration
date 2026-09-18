@@ -3,10 +3,11 @@ import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { ScanningModule } from './modules/ScanningModule';
 import { PatientSearchModule } from './modules/PatientSearchModule';
 import { ComponentLibrary } from './pages/ComponentLibrary';
+import { SchedulerMain } from './pages/SchedulerMain';
 
 function MainApp() {
   const queryParams = new URLSearchParams(window.location.search);
-  const activeModule = queryParams.get('module') || 'scanning';
+  const activeModule = queryParams.get('module') || 'scheduler';
   const { theme, setTheme } = useTheme();
   const [isClosed, setIsClosed] = useState(false);
 
@@ -41,17 +42,21 @@ function MainApp() {
         return <PatientSearchModule onClose={handleClose} />;
       case 'library':
         return <ComponentLibrary />;
+      case 'scheduler':
+        return <SchedulerMain />;
       case 'scanning':
       default:
         return <ScanningModule onClose={handleClose} />;
     }
   };
 
+  const isScheduler = activeModule === 'scheduler';
+
   return (
-    <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${theme === 'windows' ? 'bg-[#3A6EA5]' : 'bg-slate-100'}`}>
+    <div className={isScheduler ? '' : `min-h-screen flex flex-col items-center justify-center p-4 ${theme === 'windows' ? 'bg-[#3A6EA5]' : 'bg-slate-100'}`}>
       
       {/* Top Fixed Control Bar: Screen Navigation + Theme Switcher */}
-      <div className="fixed top-4 right-4 bg-white p-2 rounded-lg shadow-xl border border-slate-300 flex items-center gap-3 z-[2000] text-xs font-sans text-slate-700">
+      {!isScheduler && <div className="fixed top-4 right-4 bg-white p-2 rounded-lg shadow-xl border border-slate-300 flex items-center gap-3 z-[2000] text-xs font-sans text-slate-700">
         
         {/* Navigation Links */}
         <div className="flex items-center gap-1">
@@ -114,7 +119,7 @@ function MainApp() {
           </button>
         </div>
 
-      </div>
+      </div>}
 
       {/* Render Active Screen / Module */}
       {renderActiveScreen()}
