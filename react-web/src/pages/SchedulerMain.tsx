@@ -10,7 +10,10 @@ const clinicians = [
 const times = [
   '7:00 AM', '7:30 AM', '8:00 AM', '8:30 AM', '9:00 AM', '9:30 AM', '10:00 AM', '10:30 AM',
   '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM', '1:00 PM', '1:30 PM', '2:00 PM', '2:30 PM',
-  '3:00 PM', '3:30 PM', '4:00 PM',
+  '3:00 PM', '3:30 PM', '4:00 PM','4:30 PM','5:00 PM','5:30 PM','6:00 PM','6:30 PM','7:00 PM','7:30 PM','8:00 PM','8:30 PM',
+  '8:00 PM','8:30 PM','9:00 PM','9:30 PM','10:00 PM','10:30 PM','11:00 PM','11:30 PM','12:00 PM','12:30 PM',
+  '1:00 PM','1:30 PM','2:00 PM','2:30 PM','3:00 PM','3:30 PM','4:00 PM','4:30 PM','5:00 PM','5:30 PM',
+  '6:00 PM','6:30 PM',
 ];
 
 // Appointment blocks with status colors and contract type dot indicators
@@ -108,14 +111,14 @@ export const SchedulerMain = () => {
     <main className="h-screen w-screen min-w-[1120px] overflow-hidden bg-[#f0eeeef0] font-sans text-[11px] text-black select-none" onClick={() => setContextMenu(null)}>
       
       {/* Window Title Bar */}
-      <header className="box-border flex h-[24px] items-center justify-between border-b border-[#808080] bg-[#f0eeef] px-2 text-[12px] font-bold">
+      {/* <header className="box-border flex h-[24px] items-center justify-between border-b border-[#808080] bg-[#f0eeef] px-2 text-[12px] font-bold">
         <span>CORA DEV - Scheduling for -- Apopka - CORA</span>
         <div className="flex items-center gap-2 font-normal">
           <button className="h-4 w-4 bg-[#e0e0e0] border border-[#808080] text-[10px] leading-none">_</button>
           <button className="h-4 w-4 bg-[#e0e0e0] border border-[#808080] text-[10px] leading-none">☐</button>
           <button className="h-4 w-4 bg-[#e0e0e0] border border-[#808080] text-[10px] leading-none text-red-600">✕</button>
         </div>
-      </header>
+      </header> */}
 
       {/* Navigation Menu Strip */}
       <nav className="flex h-[22px] items-center gap-0.5 border-b border-[#a0a0a0] bg-[#f4f4f4] px-1 text-[11px]">
@@ -210,7 +213,7 @@ export const SchedulerMain = () => {
             </div>
 
             {/* Quick Action Navigation */}
-            <div className="flex justify-between border-t border-[#808080] bg-[#e0e0e0] p-0.5 text-[10px]">
+            <div className="flex justify-between border-t border-[#808080] bg-[#e0e0e0] p-0.5 text-[11px]">
               {['Previous', 'Today', 'Next'].map((lbl) => (
                 <button key={lbl} className="px-1 border border-[#808080] bg-white hover:bg-gray-100">
                   {lbl}
@@ -282,7 +285,7 @@ export const SchedulerMain = () => {
               {/* Time Column */}
               <div className="grid grid-rows-[repeat(19,minmax(24px,1fr))] border-r border-[#808080] bg-[#f4f4f4]">
                 {times.map((t) => (
-                  <div key={t} className="border-b border-[#c0c0c0] pr-1 pt-0.5 text-right font-mono text-[10px] text-gray-700">
+                  <div key={t} className="border-b border-[#c0c0c0] pr-1 pt-0.5 text-right font-mono text-[11px] text-gray-700">
                     {t}
                   </div>
                 ))}
@@ -303,7 +306,7 @@ export const SchedulerMain = () => {
                 {blocks.map((b, idx) => (
                   <div
                     key={idx}
-                    className="z-10 m-0.5 border border-[#808080] bg-[#d0d0d0] p-0.5 text-[10px] text-black font-semibold truncate"
+                    className="z-10 m-0.5 border border-[#808080] bg-[#d0d0d0] p-0.5 text-[11px] text-black font-semibold truncate"
                     style={{
                       gridColumn: b.clinician + 1,
                       gridRow: `${b.row + 1} / span ${b.span}`
