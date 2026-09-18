@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const clinicians = [
   'IBST Miscellaneous, PT', 'David Alexy, PT', 'Ibrar Ali, PT', 'Cynthia Casaudomecq, SLP',
@@ -16,48 +16,32 @@ const times = [
   '6:00 PM','6:30 PM',
 ];
 
-// Appointment blocks with status colors and contract type dot indicators
-const appointments = [
-  { 
-    clinician: 2, 
-    row: 6, 
-    name: 'Young, Melissa', 
-    type: 'RTM', 
-    statusColor: 'bg-[#ffcb99]', // Scheduled Peach / Light Orange
-    contractDots: ['bg-[#008000]', 'bg-[#409fff]', 'bg-[#a582ec]'] // Medicare, Flat Rate, Other
-  },
-  { 
-    clinician: 7, 
-    row: 6, 
-    name: 'RefstatTest3 Bra...', 
-    type: 'RTM', 
-    statusColor: 'bg-[#ffcb99]',
-    contractDots: ['bg-[#008000]', 'bg-[#ff0000]'] 
-  },
-  { 
-    clinician: 7, 
-    row: 8, 
-    name: 'ReferralTester Br...', 
-    type: '', 
-    statusColor: 'bg-[#ffcb99]',
-    contractDots: ['bg-[#008000]'] 
-  },
-];
+type Appointment = {
+  clinician: number;
+  row: number;
+  name: string;
+  type: string;
+  statusColor: string;
+  contractDots: string[];
+};
 
-const blocks = [
-  { clinician: 1, row: 0, span: 4, text: 'TH 8-5' }, 
-  { clinician: 1, row: 2, span: 3, text: 'Blocked' },
-  { clinician: 1, row: 10, span: 2, text: 'Lunch' }, 
-  { clinician: 4, row: 0, span: 4, text: '8-9pm' },
-  { clinician: 5, row: 0, span: 4, text: '9-6' }, 
-  { clinician: 6, row: 0, span: 4, text: '8-5' },
-  { clinician: 4, row: 12, span: 2, text: 'Lunch' }, 
-  { clinician: 5, row: 12, span: 2, text: 'Lunch' },
-  { clinician: 6, row: 12, span: 2, text: 'LUNCH' }, 
-  { clinician: 7, row: 10, span: 4, text: 'Block' },
-  { clinician: 13, row: 0, span: 4, text: 'TELE EVAL ONLY...' }, 
-  { clinician: 13, row: 10, span: 5, text: 'CLOSED' },
-];
+const APPOINTMENTS_STORAGE_KEY = 'cora-scheduler-appointments';
+
+const loadAppointments = (): Appointment[] => {
+  try {
+    const savedAppointments = window.localStorage.getItem(APPOINTMENTS_STORAGE_KEY);
+    return savedAppointments ? JSON.parse(savedAppointments) as Appointment[] : [];
+  } catch {
+    return [];
+  }
+};
+
+const blocks: Array<{
+  clinician: number;
+  row: number;
+  span: number;
+  text: string;
+}> = [];
 
 // Exact 24 Toolbar Button Definitions
 const toolbarButtons = [
@@ -83,9 +67,15 @@ const toolbarButtons = [
 export const SchedulerMain = () => {
   const [selectedDate, setSelectedDate] = useState(17);
   const [selectedClinicians, setSelectedClinicians] = useState(clinicians.slice(0, 15));
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
-  const [dialog, setDialog] = useState<'appointment' | 'registration' | 'edocs' | null>(null);
-  const [selectedAppointment, setSelectedAppointment] = useState<{ name: string; clinician: number; row: number } | null>(null);
+  const [appointments, setAppointments] = useState<Appointment[]>(loadAppointments);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; clinician: number; row: number; hasAppointment: boolean } | null>(null);
+  const [selectedCell, setSelectedCell] = useState<{ clinician: number; row: number } | null>(null);
+  const [dialog, setDialog] = useState<'appointment' | 'add-appointment' | 'registration' | 'edocs' | null>(null);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+
+  useEffect(() => {
+    window.localStorage.setItem(APPOINTMENTS_STORAGE_KEY, JSON.stringify(appointments));
+  }, [appointments]);
 
   const toggleClinician = (clinician: string) => {
     setSelectedClinicians((current) =>
@@ -95,8 +85,15 @@ export const SchedulerMain = () => {
     );
   };
 
-  const openAppointmentDialog = (appointment?: { name: string; clinician: number; row: number }) => {
-    setSelectedAppointment(appointment ?? { name: 'Search patient', clinician: 0, row: 0 });
+  const openAppointmentDialog = (appointment?: Appointment) => {
+    setSelectedAppointment(appointment ?? {
+      name: 'Search patient',
+      clinician: 0,
+      row: 0,
+      type: 'Appointment',
+      statusColor: 'bg-[#ffcb99]',
+      contractDots: [],
+    });
     setDialog('appointment');
     setContextMenu(null);
   };
@@ -104,7 +101,34 @@ export const SchedulerMain = () => {
   const handleGridContextMenu = (event: React.MouseEvent<HTMLElement>) => {
     event.preventDefault();
     event.stopPropagation();
-    setContextMenu({ x: event.clientX, y: event.clientY });
+    const grid = event.currentTarget;
+    const bounds = grid.getBoundingClientRect();
+    const columnWidth = bounds.width / clinicians.length;
+    const rowHeight = 24;
+    const clinician = Math.max(0, Math.min(clinicians.length - 1, Math.floor((event.clientX - bounds.left) / columnWidth)));
+    const row = Math.max(0, Math.min(times.length - 1, Math.floor((event.clientY - bounds.top) / rowHeight)));
+    const hasAppointment = appointments.some((appointment) => (
+      appointment.clinician === clinician && row >= appointment.row && row < appointment.row + 2
+    ));
+    setSelectedCell({ clinician, row });
+    setContextMenu({ x: event.clientX, y: event.clientY, clinician, row, hasAppointment });
+  };
+
+  const addAppointment = (name: string, row: number, clinician: number) => {
+    setAppointments((current) => [
+      ...current,
+      {
+        name,
+        row,
+        clinician,
+        type: 'Appointment',
+        statusColor: 'bg-[#ffcb99]',
+        contractDots: [],
+      },
+    ]);
+    setDialog(null);
+    setContextMenu(null);
+    setSelectedCell(null);
   };
 
   return (
@@ -283,7 +307,7 @@ export const SchedulerMain = () => {
             <div className="grid grid-cols-[65px_1fr]">
               
               {/* Time Column */}
-              <div className="grid grid-rows-[repeat(19,minmax(24px,1fr))] border-r border-[#808080] bg-[#f4f4f4]">
+              <div className="grid border-r border-[#808080] bg-[#f4f4f4]" style={{ gridTemplateRows: `repeat(${times.length}, minmax(24px, 1fr))` }}>
                 {times.map((t) => (
                   <div key={t} className="border-b border-[#c0c0c0] pr-1 pt-0.5 text-right font-mono text-[11px] text-gray-700">
                     {t}
@@ -293,14 +317,24 @@ export const SchedulerMain = () => {
 
               {/* Schedule Canvas */}
               <div
-                className="relative grid grid-cols-[repeat(15,minmax(90px,1fr))] grid-rows-[repeat(19,minmax(24px,1fr))] bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_23px,#d0d0d0_23px,#d0d0d0_24px)]"
+                className="relative grid grid-cols-[repeat(15,minmax(90px,1fr))] bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_23px,#d0d0d0_23px,#d0d0d0_24px)]"
+                style={{ gridTemplateRows: `repeat(${times.length}, minmax(24px, 1fr))` }}
                 onContextMenu={handleGridContextMenu}
               >
                 
-                {/* Column Separator Lines */}
-                {clinicians.map((_, i) => (
-                  <div key={i} className="row-span-full border-r border-[#a0a0a0]" />
-                ))}
+                {/* Individual cells keep every doctor/time border stable when appointments are added. */}
+                {Array.from({ length: times.length * clinicians.length }, (_, index) => {
+                  const clinician = index % clinicians.length;
+                  const row = Math.floor(index / clinicians.length);
+
+                  return (
+                    <div
+                      key={`${clinician}-${row}`}
+                      className="border-r border-b border-[#a0a0a0]"
+                      style={{ gridColumn: clinician + 1, gridRow: row + 1 }}
+                    />
+                  );
+                })}
 
                 {/* Gray Schedule Blocks */}
                 {blocks.map((b, idx) => (
@@ -331,7 +365,7 @@ export const SchedulerMain = () => {
                       event.preventDefault();
                       event.stopPropagation();
                       setSelectedAppointment(app);
-                      setContextMenu({ x: event.clientX, y: event.clientY });
+                      setContextMenu({ x: event.clientX, y: event.clientY, clinician: app.clinician, row: app.row, hasAppointment: true });
                     }}
                   >
                     <span className="font-bold truncate text-black">{app.name}</span>
@@ -421,10 +455,21 @@ export const SchedulerMain = () => {
       {contextMenu && (
         <ContextMenu
           position={contextMenu}
+          hasAppointment={contextMenu.hasAppointment}
           onClose={() => setContextMenu(null)}
-          onAppointment={() => openAppointmentDialog(selectedAppointment ?? undefined)}
+          onAppointment={() => setDialog('appointment')}
+          onAddAppointment={() => { setDialog('add-appointment'); setContextMenu(null); }}
           onPatient={() => { setDialog('registration'); setContextMenu(null); }}
           onEdocs={() => { setDialog('edocs'); setContextMenu(null); }}
+        />
+      )}
+
+      {dialog === 'add-appointment' && selectedCell && (
+        <AddAppointmentDialog
+          clinician={selectedCell.clinician}
+          row={selectedCell.row}
+          onClose={() => { setDialog(null); setContextMenu(null); }}
+          onSave={addAppointment}
         />
       )}
 
@@ -444,18 +489,23 @@ export const SchedulerMain = () => {
 
 function ContextMenu({
   position,
+  hasAppointment,
   onClose,
   onAppointment,
+  onAddAppointment,
   onPatient,
   onEdocs,
 }: {
-  position: { x: number; y: number };
+  position: { x: number; y: number; clinician: number; row: number };
+  hasAppointment: boolean;
   onClose: () => void;
   onAppointment: () => void;
+  onAddAppointment: () => void;
   onPatient: () => void;
   onEdocs: () => void;
 }) {
   const items = [
+    { label: 'Add Appointment...', action: onAddAppointment },
     { label: 'New Appointment...', action: onAppointment },
     { label: 'Patient Management...', action: onPatient },
     { label: 'Edit Patient/Admission...', action: onClose },
@@ -471,7 +521,10 @@ function ContextMenu({
     { label: 'Patient Action Center', action: onClose },
     { label: 'Appointment History', action: onClose },
     { label: 'Scan Patient Forms', action: onClose },
-  ];
+  ].map((item, index) => ({
+    ...item,
+    disabled: !hasAppointment && index !== 0,
+  }));
 
   return (
     <div
@@ -480,10 +533,75 @@ function ContextMenu({
       onClick={(event) => event.stopPropagation()}
     >
       {items.map((item) => (
-        <button key={item.label} type="button" onClick={item.action}>
+        <button
+          key={item.label}
+          type="button"
+          disabled={item.disabled}
+          className={item.disabled ? 'cursor-not-allowed opacity-50' : ''}
+          onClick={item.action}
+        >
           {item.label}
         </button>
       ))}
+    </div>
+  );
+}
+
+function AddAppointmentDialog({
+  clinician,
+  row,
+  onClose,
+  onSave,
+}: {
+  clinician: number;
+  row: number;
+  onClose: () => void;
+  onSave: (name: string, row: number, clinician: number) => void;
+}) {
+  const [patientName, setPatientName] = useState('');
+  const [selectedRow, setSelectedRow] = useState(row);
+
+  return (
+    <div className="dialog-backdrop" onClick={onClose}>
+      <div className="legacy-dialog" style={{ width: '430px' }} onClick={(event) => event.stopPropagation()}>
+        <div className="dialog-titlebar">
+          <span>Add Appointment</span>
+          <button type="button" onClick={onClose}>×</button>
+        </div>
+        <div className="legacy-dialog-body">
+          <div className="form-row">
+            <span>Patient name</span>
+            <input
+              autoFocus
+              value={patientName}
+              onChange={(event) => setPatientName(event.target.value)}
+              placeholder="Enter patient name"
+            />
+          </div>
+          <div className="form-row">
+            <span>Doctor</span>
+            <input value={clinicians[clinician]} readOnly />
+          </div>
+          <div className="form-row">
+            <span>Start time</span>
+            <select value={selectedRow} onChange={(event) => setSelectedRow(Number(event.target.value))}>
+              {times.map((time, index) => <option value={index} key={`${time}-${index}`}>{time}</option>)}
+            </select>
+          </div>
+          <div className="dialog-footer">
+            <span className="dialog-spacer" />
+            <button type="button" className="legacy-button" onClick={onClose}>Cancel</button>
+            <button
+              type="button"
+              className="legacy-button primary"
+              disabled={!patientName.trim()}
+              onClick={() => onSave(patientName.trim(), selectedRow, clinician)}
+            >
+              Add Appointment
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
