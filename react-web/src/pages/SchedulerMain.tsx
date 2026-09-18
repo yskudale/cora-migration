@@ -72,6 +72,7 @@ export const SchedulerMain = () => {
   const [selectedCell, setSelectedCell] = useState<{ clinician: number; row: number } | null>(null);
   const [dialog, setDialog] = useState<'appointment' | 'add-appointment' | 'registration' | 'edocs' | null>(null);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const visibleClinicians = clinicians.filter((clinician) => selectedClinicians.includes(clinician));
 
   useEffect(() => {
     window.localStorage.setItem(APPOINTMENTS_STORAGE_KEY, JSON.stringify(appointments));
@@ -101,11 +102,15 @@ export const SchedulerMain = () => {
   const handleGridContextMenu = (event: React.MouseEvent<HTMLElement>) => {
     event.preventDefault();
     event.stopPropagation();
+    if (visibleClinicians.length === 0) {
+      return;
+    }
     const grid = event.currentTarget;
     const bounds = grid.getBoundingClientRect();
-    const columnWidth = bounds.width / clinicians.length;
+    const columnWidth = bounds.width / visibleClinicians.length;
     const rowHeight = 24;
-    const clinician = Math.max(0, Math.min(clinicians.length - 1, Math.floor((event.clientX - bounds.left) / columnWidth)));
+    const visibleClinicianIndex = Math.max(0, Math.min(visibleClinicians.length - 1, Math.floor((event.clientX - bounds.left) / columnWidth)));
+    const clinician = clinicians.indexOf(visibleClinicians[visibleClinicianIndex]);
     const row = Math.max(0, Math.min(times.length - 1, Math.floor((event.clientY - bounds.top) / rowHeight)));
     const hasAppointment = appointments.some((appointment) => (
       appointment.clinician === clinician && row >= appointment.row && row < appointment.row + 2
@@ -291,9 +296,9 @@ export const SchedulerMain = () => {
           <div className="min-w-[1450px]">
             
             {/* Therapist Headers with Light Green Tops */}
-            <div className="grid h-[28px] grid-cols-[65px_repeat(15,minmax(90px,1fr))] border-b border-[#808080]">
+            <div className="grid h-[28px] border-b border-[#808080]" style={{ gridTemplateColumns: `65px repeat(${Math.max(visibleClinicians.length, 1)}, minmax(90px, 1fr))` }}>
               <div className="border-r border-[#808080] bg-[#e0e0e0]" />
-              {clinicians.map((clinician) => (
+              {visibleClinicians.map((clinician) => (
                 <div
                   key={clinician}
                   className="border-r border-[#808080] bg-[#d2ebd0] px-1 py-0.5 text-[10px] font-bold truncate text-center text-slate-800"
@@ -317,15 +322,18 @@ export const SchedulerMain = () => {
 
               {/* Schedule Canvas */}
               <div
-                className="relative grid grid-cols-[repeat(15,minmax(90px,1fr))] bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_23px,#d0d0d0_23px,#d0d0d0_24px)]"
-                style={{ gridTemplateRows: `repeat(${times.length}, minmax(24px, 1fr))` }}
+                className="relative grid bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_23px,#d0d0d0_23px,#d0d0d0_24px)]"
+                style={{
+                  gridTemplateColumns: `repeat(${Math.max(visibleClinicians.length, 1)}, minmax(90px, 1fr))`,
+                  gridTemplateRows: `repeat(${times.length}, minmax(24px, 1fr))`,
+                }}
                 onContextMenu={handleGridContextMenu}
               >
                 
                 {/* Individual cells keep every doctor/time border stable when appointments are added. */}
-                {Array.from({ length: times.length * clinicians.length }, (_, index) => {
-                  const clinician = index % clinicians.length;
-                  const row = Math.floor(index / clinicians.length);
+                {Array.from({ length: times.length * visibleClinicians.length }, (_, index) => {
+                  const clinician = index % visibleClinicians.length;
+                  const row = Math.floor(index / visibleClinicians.length);
 
                   return (
                     <div
@@ -351,13 +359,13 @@ export const SchedulerMain = () => {
                 ))}
 
                 {/* Interactive Appointment Cards */}
-                {appointments.map((app, idx) => (
+                {appointments.filter((app) => selectedClinicians.includes(clinicians[app.clinician])).map((app, idx) => (
                   <button
                     key={idx}
                     type="button"
                     className={`z-20 m-0.5 border border-[#808080] ${app.statusColor} p-1 text-left text-[10px] shadow-xs cursor-pointer flex flex-col justify-between`}
                     style={{
-                      gridColumn: app.clinician + 1,
+                      gridColumn: visibleClinicians.indexOf(clinicians[app.clinician]) + 1,
                       gridRow: `${app.row + 1} / span 2`
                     }}
                     onClick={() => openAppointmentDialog(app)}
