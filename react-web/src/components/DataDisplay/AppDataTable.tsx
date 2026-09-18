@@ -11,6 +11,8 @@ export interface AppDataTableProps {
   columns?: TableColumn[];
   headers?: string[];
   data?: Record<string, any>[];
+  onDeleteRow?: (row: Record<string, any>, index: number) => void;
+  canDeleteRow?: (row: Record<string, any>) => boolean;
   selectedRowId?: string | number | Record<string, any> | null;
   selectedIndex?: number | null;
   onSelectRow?: (rowOrIndex: any) => void;
@@ -33,6 +35,8 @@ export const AppDataTable: React.FC<AppDataTableProps> = ({
   columns = [],
   headers = [],
   data = [],
+  onDeleteRow,
+  canDeleteRow,
   selectedRowId,
   selectedIndex,
   onSelectRow,
@@ -165,6 +169,7 @@ export const AppDataTable: React.FC<AppDataTableProps> = ({
                 {col.header}
               </th>
             ))}
+            {onDeleteRow && <th className="p-[2px]">Action</th>}
           </tr>
         </thead>
         <tbody>
@@ -205,6 +210,23 @@ export const AppDataTable: React.FC<AppDataTableProps> = ({
                     </td>
                   );
                 })}
+                {onDeleteRow && (
+                  <td className="p-[2px] whitespace-nowrap border-r border-b border-[#e0e0e0]" onClick={(event) => event.stopPropagation()}>
+                    {canDeleteRow?.(row) && (
+                      <button
+                        type="button"
+                        title="Delete document"
+                        aria-label="Delete document"
+                        onClick={() => onDeleteRow(row, index)}
+                        className={isWindows
+                          ? 'min-w-[22px] h-[20px] border border-t-white border-l-white border-b-[#404040] border-r-[#404040] bg-[#C0C0C0] text-black leading-none'
+                          : 'rounded p-1 text-slate-500 hover:bg-red-50 hover:text-red-600'}
+                      >
+                        🗑
+                      </button>
+                    )}
+                  </td>
+                )}
               </tr>
             );
           })}

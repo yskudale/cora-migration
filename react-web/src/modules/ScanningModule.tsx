@@ -31,6 +31,11 @@ interface UploadedDocument {
   extractedDetails?: ExtractedDocumentDetails;
 }
 
+interface PendingDelete {
+  document: UploadedDocument;
+  index: number;
+}
+
 const DOCUMENTS_STORAGE_KEY = 'cora-scanning-documents';
 const SELECTED_DOCUMENT_STORAGE_KEY = 'cora-selected-document-index';
 const initialDocuments: UploadedDocument[] = [
@@ -144,6 +149,7 @@ export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
   const [uploadError, setUploadError] = useState('');
   const [scanError, setScanError] = useState('');
   const [documents, setDocuments] = useState<UploadedDocument[]>(loadStoredDocuments);
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [emailRecipients, setEmailRecipients] = useState('');
   const [emailModalPosition, setEmailModalPosition] = useState({ x: 260, y: 140 });
@@ -163,6 +169,7 @@ export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
   }, [selectedDocIndex]);
 
   const documentHeaders = ['Type', 'Notes', 'Date Added', 'By', 'Status'];
+  const visibleDocuments = documents.filter((document) => document.status !== 'Deleted');
   const selectedDocument = documents[selectedDocIndex];
   const extractedDetails = selectedDocument?.extractedDetails;
 
@@ -170,6 +177,22 @@ export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
     setDocuments((currentDocuments) => currentDocuments.map((document, index) => (
       index === selectedDocIndex ? { ...document, status: 'Disputed' } : document
     )));
+  };
+
+  const handleSoftDeleteDocument = () => {
+    if (!pendingDelete) return;
+
+    setDocuments((currentDocuments) => currentDocuments.map((document, index) => (
+      index === pendingDelete.index ? { ...document, status: 'Deleted' } : document
+    )));
+    if (selectedDocIndex === pendingDelete.index) {
+      const nextSelectedIndex = documents.findIndex((document, index) => (
+        index !== pendingDelete.index && document.status !== 'Deleted'
+      ));
+      setSelectedDocIndex(nextSelectedIndex >= 0 ? nextSelectedIndex : 0);
+      setScanError('');
+    }
+    setPendingDelete(null);
   };
 
   const handleOpenEmailModal = () => {
@@ -336,10 +359,16 @@ export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
             <div className="space-y-2 pt-1">
               <AppDataTable
                 headers={documentHeaders}
-                data={documents}
+                data={visibleDocuments}
+                canDeleteRow={(document) => document.status === 'Disputed'}
+                onDeleteRow={(document) => {
+                  const documentIndex = documents.indexOf(document);
+                  if (documentIndex >= 0) setPendingDelete({ document, index: documentIndex });
+                }}
                 selectedIndex={selectedDocIndex}
-                onSelectRow={(idx) => {
-                  setSelectedDocIndex(idx);
+                onSelectRow={(visibleIndex) => {
+                  const documentIndex = documents.indexOf(visibleDocuments[visibleIndex]);
+                  setSelectedDocIndex(documentIndex >= 0 ? documentIndex : 0);
                   setScanError('');
                 }}
                 contextMenuItems={[
@@ -525,6 +554,20 @@ export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
           </AppModal>
         )}
       </AppModal>
+
+      {pendingDelete && (
+        <AppModal title="Confirm Delete" onClose={() => setPendingDelete(null)}>
+          <div className="space-y-3 text-xs">
+            <p>
+              Mark “{pendingDelete.document.notes}” as deleted? The entry will remain in the list for audit purposes.
+            </p>
+            <div className="flex justify-end gap-2">
+              <AppButton variant="secondary" onClick={() => setPendingDelete(null)}>Cancel</AppButton>
+              <AppButton variant="danger" onClick={handleSoftDeleteDocument}>Delete</AppButton>
+            </div>
+          </div>
+        </AppModal>
+      )}
 
       {isEmailModalOpen && (
         <div
