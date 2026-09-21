@@ -5,14 +5,84 @@ export interface AppModalProps extends HTMLAttributes<HTMLDivElement> {
   title: string;
   children?: ReactNode;
   onClose?: () => void;
+  floating?: boolean;
+  position?: { x: number; y: number };
+  onDragStart?: (event: React.MouseEvent<HTMLDivElement>) => void;
 }
 
 export const AppModal: React.FC<AppModalProps> = ({ 
   title, 
   children, 
-  onClose 
+  onClose,
+  floating = false,
+  position,
+  onDragStart,
+  ...rest
 }) => {
   const { theme } = useTheme();
+
+  if (floating) {
+    const floatingStyle = position ? { left: `${position.x}px`, top: `${position.y}px` } : undefined;
+
+    if (theme === 'windows') {
+      return (
+        <div className="pointer-events-none fixed inset-0 z-[1200]">
+          <div
+            {...rest}
+            className="pointer-events-auto bg-[#F0EEEF] border-2 border-t-white border-l-white border-b-[#404040] border-r-[#404040] shadow-[3px_3px_0_rgba(0,0,0,0.18)] w-[900px] max-w-[calc(100vw-32px)] p-1 font-sans text-black"
+            style={{ ...floatingStyle, position: 'absolute' }}
+          >
+            <div
+              className="bg-[#F0EEEF] px-2 py-0.5 flex justify-between items-center text-[12px] select-none font-sans border-b border-[#808080] mb-1 cursor-move"
+              onMouseDown={onDragStart}
+            >
+              <div className="flex items-center gap-1.5 text-black font-normal">
+                <span className="text-[14px] leading-none">☕</span>
+                <span>{title}</span>
+              </div>
+              {onClose && (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="w-4 h-4 bg-[#F0EEEF] border border-t-white border-l-white border-b-[#404040] border-r-[#404040] active:border-t-[#404040] active:border-l-[#404040] text-black font-bold text-[10px] leading-none flex items-center justify-center cursor-pointer"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+            <div className="p-2 bg-[#F0EEEF] max-h-[calc(100vh-120px)] overflow-auto">{children}</div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="pointer-events-none fixed inset-0 z-[1200]">
+        <div
+          {...rest}
+          className="pointer-events-auto bg-white rounded-xl shadow-2xl border border-slate-200 w-[900px] max-w-[calc(100vw-32px)] overflow-hidden"
+          style={{ ...floatingStyle, position: 'absolute' }}
+        >
+          <div
+            className="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between cursor-move"
+            onMouseDown={onDragStart}
+          >
+            <h3 className="text-base font-semibold text-slate-800">{title}</h3>
+            {onClose && (
+              <button 
+                type="button"
+                onClick={onClose} 
+                className="text-slate-400 hover:text-slate-600 rounded-lg p-1 transition-colors"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+          <div className="p-6 max-h-[calc(100vh-120px)] overflow-auto">{children}</div>
+        </div>
+      </div>
+    );
+  }
 
   if (theme === 'windows') {
     return (

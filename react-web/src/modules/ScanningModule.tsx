@@ -11,8 +11,9 @@ import { useTheme } from '../context/ThemeContext';
 
 export interface ScanningModuleProps {
   onClose: () => void;
+  floating?: boolean;
 }
-
+ 
 export interface ExtractedDocumentDetails {
   invoice: string;
   date: string;
@@ -137,9 +138,11 @@ const extractPdfDetails = async (file: File): Promise<ExtractedDocumentDetails> 
   return parseDocumentText(text);
 };
 
-export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
+export const ScanningModule = ({ onClose, floating = false }: ScanningModuleProps) => {
   const { theme } = useTheme();
   const [selectedOption, setSelectedOption] = useState('ABN Form Option 1');
+  const [floatingPosition, setFloatingPosition] = useState({ x: 180, y: 80 });
+  const dragRef = useRef<{ startX: number; startY: number; originX: number; originY: number } | null>(null);
   const [selectedDocIndex, setSelectedDocIndex] = useState(loadStoredSelectedDocument);
   const [selectedFileType, setSelectedFileType] = useState('ABN Form Option 1');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -212,6 +215,20 @@ export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
     };
   };
 
+  const handleFloatingDragStart = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (!floating) return;
+
+    const target = event.target as HTMLElement;
+    if (target.closest('button, input, textarea, select')) return;
+
+    dragRef.current = {
+      startX: event.clientX,
+      startY: event.clientY,
+      originX: floatingPosition.x,
+      originY: floatingPosition.y,
+    };
+  };
+
   useEffect(() => {
     if (!isEmailModalOpen) return;
 
@@ -238,6 +255,33 @@ export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
       window.removeEventListener('mouseup', handleMouseUp);
     };
   }, [isEmailModalOpen, emailModalPosition.x, emailModalPosition.y]);
+
+  useEffect(() => {
+    if (!floating) return;
+
+    const handleMouseMove = (event: MouseEvent) => {
+      if (!dragRef.current) return;
+
+      const deltaX = event.clientX - dragRef.current.startX;
+      const deltaY = event.clientY - dragRef.current.startY;
+      setFloatingPosition({
+        x: Math.max(20, Math.min(window.innerWidth - 440, dragRef.current.originX + deltaX)),
+        y: Math.max(20, Math.min(window.innerHeight - 260, dragRef.current.originY + deltaY)),
+      });
+    };
+
+    const handleMouseUp = () => {
+      dragRef.current = null;
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [floating, floatingPosition.x, floatingPosition.y]);
 
   const statusItems = [
     { name: 'FCE', date: 'N/A' },
@@ -351,7 +395,13 @@ export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
 
   return (
     <>
-      <AppModal title="E-Docs for Patient #1612403 : RefstatTest7, Brandon" onClose={onClose}>
+      <AppModal
+        title="E-Docs for Patient #1612403 : RefstatTest7, Brandon"
+        onClose={onClose}
+        floating={floating}
+        position={floatingPosition}
+        onDragStart={handleFloatingDragStart}
+      >
         <div className="space-y-3 font-sans text-xs">
           
           {/* Top Fieldset: Document List + Actions */}
@@ -451,7 +501,7 @@ export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
 
           </div>
 
-          <AppFieldset legend="Extracted Document Details">
+          {/* <AppFieldset legend="Extracted Document Details">
             {isScanning && (
               <div className="flex items-center gap-2 py-2 text-blue-700" role="status" aria-live="polite">
                 <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-blue-200 border-t-blue-700" />
@@ -490,7 +540,7 @@ export const ScanningModule = ({ onClose }: ScanningModuleProps) => {
                 </table>
               </div>
             )}
-          </AppFieldset>
+          </AppFieldset> */}
         </div>
         {isUploadOpen && (
           <AppModal title="File to Import" onClose={() => setIsUploadOpen(false)}>

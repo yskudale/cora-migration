@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { ScanningModule } from '../modules/ScanningModule';
 
 const clinicians = [
   'IBST Miscellaneous, PT', 'David Alexy, PT', 'Ibrar Ali, PT', 'Cynthia Casaudomecq, SLP',
@@ -63,7 +64,7 @@ const toolbarButtons = [
   { icon: '⚠️', tooltip: 'Alerts & Messages', color: 'text-amber-600' },
   { icon: 'ℹ️', tooltip: 'Schedule Info', color: 'text-indigo-800' },
 ];
-
+ 
 export const SchedulerMain = () => {
   const [selectedDate, setSelectedDate] = useState(17);
   const [selectedClinicians, setSelectedClinicians] = useState(clinicians.slice(0, 15));
@@ -72,6 +73,7 @@ export const SchedulerMain = () => {
   const [selectedCell, setSelectedCell] = useState<{ clinician: number; row: number } | null>(null);
   const [dialog, setDialog] = useState<'appointment' | 'add-appointment' | 'registration' | 'edocs' | null>(null);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [isScanningModalOpen, setIsScanningModalOpen] = useState(false);
   const visibleClinicians = clinicians.filter((clinician) => selectedClinicians.includes(clinician));
 
   useEffect(() => {
@@ -469,6 +471,10 @@ export const SchedulerMain = () => {
           onAddAppointment={() => { setDialog('add-appointment'); setContextMenu(null); }}
           onPatient={() => { setDialog('registration'); setContextMenu(null); }}
           onEdocs={() => { setDialog('edocs'); setContextMenu(null); }}
+          onScanPatientForms={() => {
+            setContextMenu(null);
+            setIsScanningModalOpen(true);
+          }}
         />
       )}
 
@@ -491,6 +497,10 @@ export const SchedulerMain = () => {
 
       {dialog === 'registration' && <RegistrationDialog onClose={() => setDialog(null)} />}
       {dialog === 'edocs' && <EdocsDialog onClose={() => setDialog(null)} />}
+
+      {isScanningModalOpen && (
+        <ScanningModule onClose={() => setIsScanningModalOpen(false)} floating />
+      )}
     </main>
   );
 };
@@ -503,6 +513,7 @@ function ContextMenu({
   onAddAppointment,
   onPatient,
   onEdocs,
+  onScanPatientForms,
 }: {
   position: { x: number; y: number; clinician: number; row: number };
   hasAppointment: boolean;
@@ -511,6 +522,7 @@ function ContextMenu({
   onAddAppointment: () => void;
   onPatient: () => void;
   onEdocs: () => void;
+  onScanPatientForms: () => void;
 }) {
   const items = [
     { label: 'Add Appointment...', action: onAddAppointment },
@@ -528,7 +540,7 @@ function ContextMenu({
     { label: 'View Documentation', action: onEdocs },
     { label: 'Patient Action Center', action: onClose },
     { label: 'Appointment History', action: onClose },
-    { label: 'Scan Patient Forms', action: onClose },
+    { label: 'Scan Patient Forms', action: onScanPatientForms },
   ].map((item, index) => ({
     ...item,
     disabled: !hasAppointment && index !== 0,
